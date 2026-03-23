@@ -15,17 +15,19 @@ import java.util.Map;
 
 public class App {
 
-    public static void main(String[] args) throws Exception {
-        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "3001"));
+    private final Server jetty;
+    private final McpSyncServer mcpServer;
+    private final int port;
 
-        // 1. Create SSE transport (uses SPI-discovered Jackson3 mapper)
+    public App(int port) throws Exception {
+        this.port = port;
+
         var transportProvider = HttpServletSseServerTransportProvider.builder()
                 .messageEndpoint("/mcp/message")
                 .sseEndpoint("/sse")
                 .build();
 
-        // 2. Build MCP server with inline tool definitions
-        McpSyncServer mcpServer = McpServer.sync(transportProvider)
+        mcpServer = McpServer.sync(transportProvider)
                 .serverInfo("tfl-server", "0.1.0")
                 .capabilities(McpSchema.ServerCapabilities.builder()
                         .tools(true)
@@ -58,8 +60,7 @@ public class App {
                                 .build())
                 .build();
 
-        // 3. Start Jetty with the transport servlet
-        Server jetty = new Server();
+        jetty = new Server();
         ServerConnector connector = new ServerConnector(jetty);
         connector.setPort(port);
         jetty.addConnector(connector);
@@ -68,11 +69,28 @@ public class App {
         context.setContextPath("/");
         context.addServlet(new ServletHolder(transportProvider), "/*");
         jetty.setHandler(context);
+    }
 
+    public Server getJetty() {
+        return jetty;
+    }
+
+    public void start() throws Exception {
         jetty.start();
         System.out.println("MCP server running on http://localhost:" + port);
         System.out.println("  SSE endpoint: /sse");
         System.out.println("  Message endpoint: /mcp/message");
-        jetty.join();
+    }
+
+    public void stop() throws Exception {
+        mcpServer.closeGracefully();
+        jetty.stop();
+    }
+
+    public static void main(String[] args) throws Exception {
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "3001"));
+        App app = new App(port);
+        app.start();
+        app.jetty.join();
     }
 }
