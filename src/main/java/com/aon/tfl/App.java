@@ -78,6 +78,29 @@ public class App {
                                 .build())
                 .toolCall(
                         McpSchema.Tool.builder()
+                                .name("arrivals")
+                                .description("Get live arrivals at a TfL stop (e.g. 940GZZLUOXC)")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of("stopId", Map.of("type", "string", "description", "NaPTAN stop ID, e.g. 940GZZLUOXC")),
+                                        List.of("stopId"),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String stopId = request.arguments().get("stopId").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchArrivals(stopId))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching arrivals: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
                                 .name("line_status")
                                 .description("Get the current status of one or more TfL lines (e.g. central, victoria, jubilee)")
                                 .inputSchema(new McpSchema.JsonSchema(
@@ -126,6 +149,38 @@ public class App {
     public void stop() throws Exception {
         mcpServer.closeGracefully();
         jetty.stop();
+    }
+
+    private String fetchArrivals(String stopId) throws Exception {
+        String url = tflBase + "/StopPoint/" + stopId + "/Arrivals";
+        if (TFL_APP_KEY != null && !TFL_APP_KEY.isBlank()) {
+            url += "?app_key=" + TFL_APP_KEY;
+        }
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var arrivals = new ArrayList<JsonNode>();
+        for (JsonNode arrival : root) {
+            arrivals.add(arrival);
+        }
+        arrivals.sort((a, b) -> Integer.compare(
+                a.path("timeToStation").asInt(),
+                b.path("timeToStation").asInt()));
+
+        var sb = new StringBuilder();
+        for (JsonNode arrival : arrivals) {
+            String line = arrival.path("lineName").asText();
+            String destination = arrival.path("destinationName").asText();
+            int seconds = arrival.path("timeToStation").asInt();
+            int minutes = seconds / 60;
+            String platform = arrival.path("platformName").asText("");
+            sb.append(line).append(" → ").append(destination)
+              .append(": ").append(minutes).append(" min");
+            if (!platform.isBlank()) sb.append(" (").append(platform).append(")");
+            sb.append("\n");
+        }
+        return sb.toString().trim();
     }
 
     private String fetchLineStatus(String lines) throws Exception {
