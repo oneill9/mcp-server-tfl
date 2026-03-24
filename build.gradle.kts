@@ -67,5 +67,5 @@ tasks.register<Test>("contractTest") {
 }
 
 application {
-    mainClass = "com.aon.tfl.App"
+    mainClass = "com.tfl.App"
 }

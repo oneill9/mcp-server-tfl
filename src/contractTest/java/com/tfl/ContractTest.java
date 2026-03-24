@@ -1,4 +1,4 @@
-package com.aon.tfl;
+package com.tfl;
 
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
