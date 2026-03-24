@@ -45,6 +45,16 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/StopPoint/940GZZLUOXC/Arrivals"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"lineName":"Central","platformName":"Eastbound - Platform 2","destinationName":"Epping","timeToStation":120},
+                                  {"lineName":"Central","platformName":"Eastbound - Platform 2","destinationName":"Epping","timeToStation":300}
+                                ]
+                                """)));
+
         app = new App(0, "http://localhost:" + wireMock.port());
         app.start();
 
@@ -123,6 +133,25 @@ class AppTest {
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
         assertTrue(text.contains("Good Service"), "Response should contain the status");
+    }
+
+    // --- arrivals ---
+
+    @Test
+    void listToolsContainsArrivals() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("arrivals"), "Should contain arrivals tool");
+    }
+
+    @Test
+    void arrivalsReturnsLiveArrivals() {
+        var result = client.callTool(new McpSchema.CallToolRequest("arrivals", Map.of("stopId", "940GZZLUOXC")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Central"), "Response should mention the line name");
+        assertTrue(text.contains("Epping"), "Response should mention the destination");
+        assertTrue(text.contains("2 min") || text.contains("120"), "Response should include time to station");
     }
 
     @Test
