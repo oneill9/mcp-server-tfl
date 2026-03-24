@@ -43,8 +43,10 @@ tasks.processResources {
 }
 
 val contractTestSourceSet = sourceSets.create("contractTest") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
+    // Include main's full runtime classpath so contractTest code can reference
+    // implementation deps (MCP SDK, Jackson 3, etc.) directly — e.g. for StdioClientTransport.
+    compileClasspath += sourceSets.main.get().runtimeClasspath
+    runtimeClasspath += sourceSets.main.get().runtimeClasspath
 }
 
 configurations[contractTestSourceSet.implementationConfigurationName]
