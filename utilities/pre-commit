@@ -1,0 +1,7 @@
+#!/bin/sh
+echo "Running build before commit..."
+./gradlew build
+if [ $? -ne 0 ]; then
+  echo "Build failed. Commit aborted."
+  exit 1
+fi
