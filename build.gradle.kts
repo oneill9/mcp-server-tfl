@@ -20,11 +20,15 @@ dependencies {
     implementation("org.eclipse.jetty:jetty-server:12.0.18")
     implementation("org.eclipse.jetty.ee10:jetty-ee10-servlet:12.0.18")
 
+    // JSON parsing for TfL API responses
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.16")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.1")
+    testImplementation("org.wiremock:wiremock-jetty12:3.13.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
