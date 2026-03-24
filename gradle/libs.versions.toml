@@ -2,6 +2,7 @@
 mcp = "1.1.0"
 jetty = "12.0.18"
 jackson = "2.21.2"
+jackson3 = "3.1.0"
 slf4j = "2.0.16"
 log4j = "2.24.3"
 junit = "6.1.0-M1"
@@ -12,6 +13,7 @@ mcp-sdk = { module = "io.modelcontextprotocol.sdk:mcp", version.ref = "mcp" }
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet", version.ref = "jetty" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson3-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson3" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 log4j-slf4j2-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }

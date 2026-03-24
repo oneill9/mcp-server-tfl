@@ -24,21 +24,20 @@ Built with Java 25, Gradle 9.4.1, Jetty 12, and the [MCP Java SDK](https://githu
 
 | Environment Variable | Default | Description |
 |----------------------|---------|-------------|
-| `PORT` | `3001` | HTTP port the server listens on |
 | `TFL_APP_KEY` | *(none)* | TfL API key — register at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/) |
+| `TFL_APP_ID` | *(none)* | TfL App ID — only needed for older API registrations that issued both an ID and key |
 
 Requests work without an API key but are rate-limited. An app key raises the limit significantly.
 
 ## Running
 
+The server uses **stdio transport** — it reads JSON-RPC from stdin and writes responses to stdout, which is the standard MCP transport for Claude Desktop.
+
 ```sh
 TFL_APP_KEY=your_key_here ./gradlew run
 ```
 
-Server starts on `http://localhost:3001` by default.
-
-SSE endpoint: `/sse`
-Message endpoint: `/mcp/message`
+For use with Claude Desktop, see [docs/installation.md](docs/installation.md).
 
 ## Testing
 
