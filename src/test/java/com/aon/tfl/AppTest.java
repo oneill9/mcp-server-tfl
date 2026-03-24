@@ -55,6 +55,18 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/StopPoint/Search/oxford"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "matches": [
+                                    {"id":"940GZZLUOXC","name":"Oxford Circus Underground Station","lat":51.515,"lon":-0.1416},
+                                    {"id":"490000173RC","name":"Oxford Circus","lat":51.5148,"lon":-0.1418}
+                                  ]
+                                }
+                                """)));
+
         app = new App(0, "http://localhost:" + wireMock.port());
         app.start();
 
@@ -152,6 +164,24 @@ class AppTest {
         assertTrue(text.contains("Central"), "Response should mention the line name");
         assertTrue(text.contains("Epping"), "Response should mention the destination");
         assertTrue(text.contains("2 min") || text.contains("120"), "Response should include time to station");
+    }
+
+    // --- stop_search ---
+
+    @Test
+    void listToolsContainsStopSearch() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("stop_search"), "Should contain stop_search tool");
+    }
+
+    @Test
+    void stopSearchReturnsMatchingStops() {
+        var result = client.callTool(new McpSchema.CallToolRequest("stop_search", Map.of("query", "oxford")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Oxford Circus"), "Response should mention Oxford Circus");
+        assertTrue(text.contains("940GZZLUOXC"), "Response should include the stop ID");
     }
 
     @Test
