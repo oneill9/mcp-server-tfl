@@ -77,6 +77,16 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/BikePoint"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"id":"BikePoints_1","commonName":"River Street, Clerkenwell","lat":51.5292,"lon":-0.1086,"additionalProperties":[{"key":"NbBikes","value":"9"},{"key":"NbEmptyDocks","value":"9"}]},
+                                  {"id":"BikePoints_2","commonName":"Phillimore Gardens, Kensington","lat":51.4996,"lon":-0.1975,"additionalProperties":[{"key":"NbBikes","value":"0"},{"key":"NbEmptyDocks","value":"13"}]}
+                                ]
+                                """)));
+
         wireMock.stubFor(get(urlPathMatching("/Journey/JourneyResults/1000123/to/1000456"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -272,5 +282,23 @@ class AppTest {
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("25") || text.contains("Central"), "Response should include journey details");
         assertTrue(text.contains("Bank") || text.contains("leg") || text.contains("min"), "Response should include leg summary");
+    }
+
+    // --- bike_points ---
+
+    @Test
+    void listToolsContainsBikePoints() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("bike_points"), "Should contain bike_points tool");
+    }
+
+    @Test
+    void bikePointsReturnsDockingStations() {
+        var result = client.callTool(new McpSchema.CallToolRequest("bike_points", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Clerkenwell") || text.contains("River Street"), "Response should mention a docking station name");
+        assertTrue(text.contains("9") || text.contains("BikePoints_1"), "Response should include bike availability info");
     }
 }

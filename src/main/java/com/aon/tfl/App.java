@@ -171,6 +171,28 @@ public class App {
                         })
                 .toolCall(
                         McpSchema.Tool.builder()
+                                .name("bike_points")
+                                .description("List Santander Cycles docking stations with available bikes and empty docks")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(),
+                                        List.of(),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchBikePoints())
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching bike points: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
                                 .name("journey")
                                 .description("Plan a journey between two points using the TfL Journey Planner")
                                 .inputSchema(new McpSchema.JsonSchema(
@@ -306,6 +328,29 @@ public class App {
                 int legDuration = leg.path("duration").asInt();
                 sb.append("  - ").append(summary).append(" (").append(legDuration).append(" min)\n");
             }
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchBikePoints() throws Exception {
+        String url = withAuth(tflBase + "/BikePoint");
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var sb = new StringBuilder();
+        for (JsonNode point : root) {
+            String id = point.path("id").asText();
+            String name = point.path("commonName").asText();
+            String bikes = "";
+            String emptyDocks = "";
+            for (JsonNode prop : point.path("additionalProperties")) {
+                String key = prop.path("key").asText();
+                if ("NbBikes".equals(key)) bikes = prop.path("value").asText();
+                else if ("NbEmptyDocks".equals(key)) emptyDocks = prop.path("value").asText();
+            }
+            sb.append(id).append(" — ").append(name)
+              .append(": ").append(bikes).append(" bikes, ").append(emptyDocks).append(" empty docks\n");
         }
         return sb.toString().trim();
     }
