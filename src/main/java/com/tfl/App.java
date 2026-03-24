@@ -36,7 +36,7 @@ public class App {
 
     private static final String TFL_APP_KEY = System.getenv("TFL_APP_KEY");
     private static final String TFL_APP_ID = System.getenv("TFL_APP_ID");
-    private static final HttpClient HTTP = HttpClient.newHttpClient();
+    private static final HttpClient HTTP = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private static final String VERSION = loadVersion();
