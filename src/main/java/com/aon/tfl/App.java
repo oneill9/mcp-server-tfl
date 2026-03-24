@@ -21,9 +21,11 @@ import java.nio.charset.StandardCharsets;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -282,12 +284,29 @@ public class App {
         return url + "?" + String.join("&", params);
     }
 
-    private String fetchListModes() throws Exception {
-        String url = withAuth(tflBase + "/Line/Meta/Modes");
+    private static String encodePath(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private static String encodeSegments(String csv) {
+        return Arrays.stream(csv.split(",", -1))
+                .map(s -> URLEncoder.encode(s.trim(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining(","));
+    }
+
+    private JsonNode httpGet(String path) throws Exception {
+        String url = withAuth(tflBase + path);
         var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
         var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
+        int status = response.statusCode();
+        if (status < 200 || status >= 300) {
+            throw new Exception("TfL API returned HTTP " + status);
+        }
+        return JSON.readTree(response.body());
+    }
 
+    private String fetchListModes() throws Exception {
+        JsonNode root = httpGet("/Line/Meta/Modes");
         var modes = new ArrayList<String>();
         for (JsonNode mode : root) {
             modes.add(mode.path("modeName").asText());
@@ -296,19 +315,11 @@ public class App {
     }
 
     private String fetchAirQuality() throws Exception {
-        String url = withAuth(tflBase + "/AirQuality");
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-        return root.toPrettyString();
+        return httpGet("/AirQuality").toPrettyString();
     }
 
     private String fetchRoadDisruptions() throws Exception {
-        String url = withAuth(tflBase + "/Road/all/Street/Disruption");
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/Road/all/Street/Disruption");
         var sb = new StringBuilder();
         for (JsonNode disruption : root) {
             String location = disruption.path("location").asText("Unknown Location");
@@ -319,11 +330,7 @@ public class App {
     }
 
     private String fetchDisruptions(String modes) throws Exception {
-        String url = withAuth(tflBase + "/Line/Mode/" + modes + "/Disruption");
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/Line/Mode/" + encodeSegments(modes) + "/Disruption");
         var sb = new StringBuilder();
         for (JsonNode disruption : root) {
             String lineId = disruption.path("lineId").asText();
@@ -334,12 +341,7 @@ public class App {
     }
 
     private String fetchStopSearch(String query) throws Exception {
-        String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8).replace("+", "%20");
-        String url = withAuth(tflBase + "/StopPoint/Search/" + encoded);
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/StopPoint/Search/" + encodePath(query));
         var sb = new StringBuilder();
         for (JsonNode match : root.path("matches")) {
             String id = match.path("id").asText();
@@ -350,11 +352,7 @@ public class App {
     }
 
     private String fetchArrivals(String stopId) throws Exception {
-        String url = withAuth(tflBase + "/StopPoint/" + stopId + "/Arrivals");
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/StopPoint/" + encodePath(stopId) + "/Arrivals");
         var arrivals = new ArrayList<JsonNode>();
         for (JsonNode arrival : root) arrivals.add(arrival);
         arrivals.sort((a, b) -> Integer.compare(
@@ -377,11 +375,7 @@ public class App {
     }
 
     private String fetchJourney(String from, String to) throws Exception {
-        String url = withAuth(tflBase + "/Journey/JourneyResults/" + from + "/to/" + to);
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/Journey/JourneyResults/" + encodePath(from) + "/to/" + encodePath(to));
         var sb = new StringBuilder();
         int journeyNum = 1;
         for (JsonNode journey : root.path("journeys")) {
@@ -398,11 +392,7 @@ public class App {
     }
 
     private String fetchBikePoints() throws Exception {
-        String url = withAuth(tflBase + "/BikePoint");
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/BikePoint");
         var sb = new StringBuilder();
         for (JsonNode point : root) {
             String id = point.path("id").asText();
@@ -421,11 +411,7 @@ public class App {
     }
 
     private String fetchLineStatus(String lines) throws Exception {
-        String url = withAuth(tflBase + "/Line/" + lines + "/Status");
-        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode root = JSON.readTree(response.body());
-
+        JsonNode root = httpGet("/Line/" + encodeSegments(lines) + "/Status");
         var sb = new StringBuilder();
         for (JsonNode line : root) {
             String name = line.path("name").asText();

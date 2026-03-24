@@ -123,6 +123,15 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/Line/bad-line/Status"))
+                .willReturn(aResponse().withStatus(500)));
+
+        wireMock.stubFor(get(urlPathMatching("/StopPoint/notfound/Arrivals"))
+                .willReturn(aResponse().withStatus(404)));
+
+        wireMock.stubFor(get(urlPathMatching("/Line/Mode/unknown-mode/Disruption"))
+                .willReturn(aResponse().withStatus(400)));
+
         wireMock.stubFor(get(urlPathMatching("/Journey/JourneyResults/1000123/to/1000456"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -379,5 +388,31 @@ class AppTest {
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("A406"), "Response should mention the location");
         assertTrue(text.contains("roadworks"), "Response should mention the comments");
+    }
+
+    // --- error handling ---
+
+    @Test
+    void lineStatusReturnsErrorOn500() {
+        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "bad-line")));
+        assertTrue(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("500"), "Error message should mention the HTTP status code");
+    }
+
+    @Test
+    void arrivalsReturnsErrorOn404() {
+        var result = client.callTool(new McpSchema.CallToolRequest("arrivals", Map.of("stopId", "notfound")));
+        assertTrue(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("404"), "Error message should mention the HTTP status code");
+    }
+
+    @Test
+    void disruptionsReturnsErrorOn400() {
+        var result = client.callTool(new McpSchema.CallToolRequest("disruptions", Map.of("modes", "unknown-mode")));
+        assertTrue(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("400"), "Error message should mention the HTTP status code");
     }
 }
