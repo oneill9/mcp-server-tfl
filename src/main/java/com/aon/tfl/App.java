@@ -15,7 +15,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -332,7 +334,8 @@ public class App {
     }
 
     private String fetchStopSearch(String query) throws Exception {
-        String url = withAuth(tflBase + "/StopPoint/Search/" + query);
+        String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8).replace("+", "%20");
+        String url = withAuth(tflBase + "/StopPoint/Search/" + encoded);
         var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
         var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
         JsonNode root = JSON.readTree(response.body());
