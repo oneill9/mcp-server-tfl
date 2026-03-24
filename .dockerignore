@@ -1,0 +1,9 @@
+build/
+.gradle/
+.idea/
+*.iml
+test-results/
+.github/
+.git/
+docs/
+mkdocs.yml
