@@ -42,7 +42,25 @@ tasks.processResources {
     }
 }
 
+val contractTestSourceSet = sourceSets.create("contractTest") {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+
+configurations[contractTestSourceSet.implementationConfigurationName]
+        .extendsFrom(configurations.testImplementation.get())
+configurations[contractTestSourceSet.runtimeOnlyConfigurationName]
+        .extendsFrom(configurations.testRuntimeOnly.get())
+
 tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.register<Test>("contractTest") {
+    description = "Runs contract tests against the real TfL API."
+    group = "verification"
+    testClassesDirs = contractTestSourceSet.output.classesDirs
+    classpath = contractTestSourceSet.runtimeClasspath
     useJUnitPlatform()
 }
 
