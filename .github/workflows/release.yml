@@ -84,16 +84,50 @@ jobs:
       - name: Release Note Generation
         id: generate-notes
         run: |
-          echo "## Transport for London (TfL) MCP Server Release ${GITHUB_REF_NAME}" > release_notes.md
-          echo "Provides real-time London transport data via Model Context Protocol." >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### Installation via Docker" >> release_notes.md
-          echo "\`\`\`json" >> release_notes.md
-          echo "\"tfl\": {" >> release_notes.md
-          echo "  \"command\": \"docker\"," >> release_notes.md
-          echo "  \"args\": [\"run\", \"-i\", \"--rm\", \"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\"]" >> release_notes.md
-          echo "}" >> release_notes.md
-          echo "\`\`\`" >> release_notes.md
+          cat > release_notes.md << 'EOF'
+          ## Transport for London (TfL) MCP Server
+
+          Provides real-time London transport data via the [Model Context Protocol](https://modelcontextprotocol.io/), making it accessible to AI assistants such as Claude.
+
+          ### Tools
+
+          | Tool | Description |
+          |---|---|
+          | `line_status` | Current status of one or more lines |
+          | `arrivals` | Live arrivals at a stop |
+          | `stop_search` | Search for stops by name |
+          | `disruptions` | Current disruptions by transport mode |
+          | `journey` | Plan a journey between two points |
+          | `bike_points` | List Santander Cycles docking stations |
+          | `list_modes` | List all valid TfL transport modes |
+          | `air_quality` | Current London air quality data |
+          | `road_disruptions` | Disrupted streets and A-roads |
+
+          ### Installation
+
+          #### Docker (recommended)
+
+          Add to your Claude Desktop `claude_desktop_config.json`:
+
+          ```json
+          "tfl": {
+            "command": "docker",
+            "args": ["run", "-i", "--rm", "ghcr.io/${{ github.repository }}:${{ github.ref_name }}"]
+          }
+          ```
+
+          #### Java (from ZIP)
+
+          Download the ZIP below, extract it, and add to your Claude Desktop config:
+
+          ```json
+          "tfl": {
+            "command": "/path/to/mcp-server-tfl/bin/mcp-server-tfl"
+          }
+          ```
+
+          An optional TfL API key can be passed via the `TFL_APP_KEY` environment variable to raise rate limits. Register at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
+          EOF
           
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
