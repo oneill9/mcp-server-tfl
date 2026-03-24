@@ -14,22 +14,24 @@ repositories {
 }
 
 dependencies {
-    implementation("io.modelcontextprotocol.sdk:mcp:1.1.0")
+    implementation(libs.mcp.sdk)
 
     // Jetty 12 as servlet container
-    implementation("org.eclipse.jetty:jetty-server:12.0.18")
-    implementation("org.eclipse.jetty.ee10:jetty-ee10-servlet:12.0.18")
+    implementation(libs.jetty.server)
+    implementation(libs.jetty.servlet)
 
     // JSON parsing for TfL API responses
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+    implementation(libs.jackson.databind)
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.5.16")
+    implementation(libs.slf4j.api)
+    runtimeOnly(libs.log4j.slf4j2.impl)
+    runtimeOnly(libs.log4j.core)
 
     // Testing
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.1")
-    testImplementation("org.wiremock:wiremock-jetty12:3.13.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.wiremock)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.test {

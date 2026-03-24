@@ -21,7 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class App {
+
+    private static final Logger log = LoggerFactory.getLogger(App.class);
 
     private static final String TFL_APP_KEY = System.getenv("TFL_APP_KEY");
     private static final String TFL_APP_ID = System.getenv("TFL_APP_ID");
@@ -276,12 +281,13 @@ public class App {
 
     public void start() throws Exception {
         jetty.start();
-        System.out.println("MCP server running on http://localhost:" + port);
-        System.out.println("  SSE endpoint: /sse");
-        System.out.println("  Message endpoint: /mcp/message");
+        log.info("MCP server running on http://localhost:{}", port);
+        log.info("  SSE endpoint: /sse");
+        log.info("  Message endpoint: /mcp/message");
     }
 
     public void stop() throws Exception {
+        log.info("Stopping MCP server");
         mcpServer.closeGracefully();
         jetty.stop();
     }
