@@ -24,6 +24,7 @@ import java.util.Map;
 public class App {
 
     private static final String TFL_APP_KEY = System.getenv("TFL_APP_KEY");
+    private static final String TFL_APP_ID = System.getenv("TFL_APP_ID");
     private static final HttpClient HTTP = HttpClient.newHttpClient();
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -101,6 +102,29 @@ public class App {
                         })
                 .toolCall(
                         McpSchema.Tool.builder()
+                                .name("stop_search")
+                                .description("Search for TfL stops by name or query string")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of("query", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
+                                        List.of("query"),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String query = request.arguments().get("query").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchStopSearch(query))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error searching stops: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
                                 .name("line_status")
                                 .description("Get the current status of one or more TfL lines (e.g. central, victoria, jubilee)")
                                 .inputSchema(new McpSchema.JsonSchema(
@@ -151,19 +175,37 @@ public class App {
         jetty.stop();
     }
 
-    private String fetchArrivals(String stopId) throws Exception {
-        String url = tflBase + "/StopPoint/" + stopId + "/Arrivals";
-        if (TFL_APP_KEY != null && !TFL_APP_KEY.isBlank()) {
-            url += "?app_key=" + TFL_APP_KEY;
+    private String withAuth(String url) {
+        var params = new ArrayList<String>();
+        if (TFL_APP_ID != null && !TFL_APP_ID.isBlank()) params.add("app_id=" + TFL_APP_ID);
+        if (TFL_APP_KEY != null && !TFL_APP_KEY.isBlank()) params.add("app_key=" + TFL_APP_KEY);
+        if (params.isEmpty()) return url;
+        return url + "?" + String.join("&", params);
+    }
+
+    private String fetchStopSearch(String query) throws Exception {
+        String url = withAuth(tflBase + "/StopPoint/Search/" + query);
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var sb = new StringBuilder();
+        for (JsonNode match : root.path("matches")) {
+            String id = match.path("id").asText();
+            String name = match.path("name").asText();
+            sb.append(id).append(" — ").append(name).append("\n");
         }
+        return sb.toString().trim();
+    }
+
+    private String fetchArrivals(String stopId) throws Exception {
+        String url = withAuth(tflBase + "/StopPoint/" + stopId + "/Arrivals");
         var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
         var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
         JsonNode root = JSON.readTree(response.body());
 
         var arrivals = new ArrayList<JsonNode>();
-        for (JsonNode arrival : root) {
-            arrivals.add(arrival);
-        }
+        for (JsonNode arrival : root) arrivals.add(arrival);
         arrivals.sort((a, b) -> Integer.compare(
                 a.path("timeToStation").asInt(),
                 b.path("timeToStation").asInt()));
@@ -184,10 +226,7 @@ public class App {
     }
 
     private String fetchLineStatus(String lines) throws Exception {
-        String url = tflBase + "/Line/" + lines + "/Status";
-        if (TFL_APP_KEY != null && !TFL_APP_KEY.isBlank()) {
-            url += "?app_key=" + TFL_APP_KEY;
-        }
+        String url = withAuth(tflBase + "/Line/" + lines + "/Status");
         var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
         var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
         JsonNode root = JSON.readTree(response.body());
