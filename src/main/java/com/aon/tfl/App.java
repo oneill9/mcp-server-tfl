@@ -125,6 +125,29 @@ public class App {
                         })
                 .toolCall(
                         McpSchema.Tool.builder()
+                                .name("disruptions")
+                                .description("Get current disruptions for one or more TfL modes (e.g. tube, bus, elizabeth-line)")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus")),
+                                        List.of("modes"),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String modes = request.arguments().get("modes").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchDisruptions(modes))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching disruptions: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
                                 .name("line_status")
                                 .description("Get the current status of one or more TfL lines (e.g. central, victoria, jubilee)")
                                 .inputSchema(new McpSchema.JsonSchema(
@@ -181,6 +204,21 @@ public class App {
         if (TFL_APP_KEY != null && !TFL_APP_KEY.isBlank()) params.add("app_key=" + TFL_APP_KEY);
         if (params.isEmpty()) return url;
         return url + "?" + String.join("&", params);
+    }
+
+    private String fetchDisruptions(String modes) throws Exception {
+        String url = withAuth(tflBase + "/Line/Mode/" + modes + "/Disruption");
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var sb = new StringBuilder();
+        for (JsonNode disruption : root) {
+            String lineId = disruption.path("lineId").asText();
+            String description = disruption.path("description").asText();
+            sb.append(lineId).append(": ").append(description).append("\n");
+        }
+        return sb.toString().trim();
     }
 
     private String fetchStopSearch(String query) throws Exception {
