@@ -77,6 +77,41 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/Journey/JourneyResults/1000123/to/1000456"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "journeys": [
+                                    {
+                                      "duration": 25,
+                                      "legs": [
+                                        {
+                                          "summary": "Take Central line to Bank",
+                                          "duration": 10,
+                                          "instruction": {"summary": "Take Central line to Bank"}
+                                        },
+                                        {
+                                          "summary": "Walk to destination",
+                                          "duration": 5,
+                                          "instruction": {"summary": "Walk to destination"}
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "duration": 35,
+                                      "legs": [
+                                        {
+                                          "summary": "Take bus 23 to Liverpool Street",
+                                          "duration": 20,
+                                          "instruction": {"summary": "Take bus 23 to Liverpool Street"}
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                                """)));
+
         app = new App(0, "http://localhost:" + wireMock.port());
         app.start();
 
@@ -219,5 +254,23 @@ class AppTest {
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
         assertTrue(text.toLowerCase().contains("victoria"), "Response should mention Victoria line");
+    }
+
+    // --- journey ---
+
+    @Test
+    void listToolsContainsJourney() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("journey"), "Should contain journey tool");
+    }
+
+    @Test
+    void journeyReturnsPlanBetweenTwoPoints() {
+        var result = client.callTool(new McpSchema.CallToolRequest("journey", Map.of("from", "1000123", "to", "1000456")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("25") || text.contains("Central"), "Response should include journey details");
+        assertTrue(text.contains("Bank") || text.contains("leg") || text.contains("min"), "Response should include leg summary");
     }
 }
