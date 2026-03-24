@@ -159,31 +159,6 @@ class AppTest {
         assertNotNull(caps.tools());
     }
 
-    @Test
-    void listToolsContainsEchoAndGreet() {
-        var result = client.listTools();
-        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("echo"), "Should contain echo tool");
-        assertTrue(names.contains("greet"), "Should contain greet tool");
-    }
-
-    @Test
-    void echoToolReturnsInput() {
-        var result = client.callTool(new McpSchema.CallToolRequest("echo", Map.of("text", "hello world")));
-        assertFalse(result.isError());
-        assertEquals(1, result.content().size());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertEquals("hello world", text);
-    }
-
-    @Test
-    void greetToolReturnsGreeting() {
-        var result = client.callTool(new McpSchema.CallToolRequest("greet", Map.of("name", "Alice")));
-        assertFalse(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertEquals("Hello, Alice! Welcome to TFL.", text);
-    }
-
     // --- line_status ---
 
     @Test

@@ -53,32 +53,6 @@ public class App {
                         .build())
                 .toolCall(
                         McpSchema.Tool.builder()
-                                .name("echo")
-                                .description("Echoes back the provided text")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of("text", Map.of("type", "string", "description", "Text to echo back")),
-                                        List.of("text"),
-                                        null, null, null))
-                                .build(),
-                        (exchange, request) -> McpSchema.CallToolResult.builder()
-                                .addTextContent(request.arguments().get("text").toString())
-                                .build())
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("greet")
-                                .description("Returns a greeting for the given name")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of("name", Map.of("type", "string", "description", "Name to greet")),
-                                        List.of("name"),
-                                        null, null, null))
-                                .build(),
-                        (exchange, request) -> McpSchema.CallToolResult.builder()
-                                .addTextContent("Hello, " + request.arguments().get("name") + "! Welcome to TFL.")
-                                .build())
-                .toolCall(
-                        McpSchema.Tool.builder()
                                 .name("arrivals")
                                 .description("Get live arrivals at a TfL stop (e.g. 940GZZLUOXC)")
                                 .inputSchema(new McpSchema.JsonSchema(
