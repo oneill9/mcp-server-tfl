@@ -67,6 +67,16 @@ class AppTest {
                                 }
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/Line/Mode/tube/Disruption"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"lineId":"central","description":"Minor delays due to earlier signal failure near Oxford Circus"},
+                                  {"lineId":"jubilee","description":"Good service"}
+                                ]
+                                """)));
+
         app = new App(0, "http://localhost:" + wireMock.port());
         app.start();
 
@@ -182,6 +192,24 @@ class AppTest {
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("Oxford Circus"), "Response should mention Oxford Circus");
         assertTrue(text.contains("940GZZLUOXC"), "Response should include the stop ID");
+    }
+
+    // --- disruptions ---
+
+    @Test
+    void listToolsContainsDisruptions() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("disruptions"), "Should contain disruptions tool");
+    }
+
+    @Test
+    void disruptionsReturnsDisruptionsByMode() {
+        var result = client.callTool(new McpSchema.CallToolRequest("disruptions", Map.of("modes", "tube")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("central"), "Response should mention the affected line");
+        assertTrue(text.contains("signal failure") || text.contains("Minor delays"), "Response should include disruption description");
     }
 
     @Test
