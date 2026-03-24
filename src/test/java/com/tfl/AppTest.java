@@ -114,7 +114,7 @@ class AppTest {
                                 ]
                                 """)));
 
-        wireMock.stubFor(get(urlPathMatching("/Road/all/Street/Disruption"))
+        wireMock.stubFor(get(urlPathMatching("/Road/all/Disruption"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("""

@@ -50,7 +50,7 @@ class StdioContractTest {
         env.remove("TFL_APP_ID");
 
         var params = ServerParameters.builder(javaCmd)
-                .args("-cp", classpath, "com.aon.tfl.App")
+                .args("-cp", classpath, "com.tfl.App")
                 .env(env)
                 .build();
 
@@ -137,5 +137,36 @@ class StdioContractTest {
         assertFalse(result.isError(), "bike_points should succeed without an API key");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("BikePoints_"), "Response should include station IDs");
+    }
+
+    @Test
+    void arrivalsWithoutKey() {
+        // 940GZZLUOXC = Oxford Circus Underground Station
+        var result = client.callTool(new McpSchema.CallToolRequest("arrivals",
+                Map.of("stopId", "940GZZLUOXC")));
+        assertFalse(result.isError(), "arrivals should succeed without an API key");
+    }
+
+    @Test
+    void disruptionsWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("disruptions",
+                Map.of("modes", "tube")));
+        assertFalse(result.isError(), "disruptions should succeed without an API key");
+    }
+
+    @Test
+    void journeyWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("journey", Map.of(
+                "from", "51.4952,-0.1441",
+                "to",   "51.5179,-0.0816")));
+        assertFalse(result.isError(), "journey should succeed without an API key");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertFalse(text.isBlank(), "journey should return a non-empty response");
+    }
+
+    @Test
+    void roadDisruptionsWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("road_disruptions", Map.of()));
+        assertFalse(result.isError(), "road_disruptions should succeed without an API key");
     }
 }

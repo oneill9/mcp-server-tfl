@@ -319,7 +319,7 @@ public class App {
     }
 
     private String fetchRoadDisruptions() throws Exception {
-        JsonNode root = httpGet("/Road/all/Street/Disruption");
+        JsonNode root = httpGet("/Road/all/Disruption");
         var sb = new StringBuilder();
         for (JsonNode disruption : root) {
             String location = disruption.path("location").asText("Unknown Location");
