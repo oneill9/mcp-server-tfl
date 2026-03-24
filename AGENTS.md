@@ -54,6 +54,7 @@ We use **red-green TDD**:
 - The TfL API key is optional for tests — stub or use a real key via `TFL_APP_KEY` env var
 - All HTTP calls to TfL should respect the `TFL_APP_KEY` env var if set
 - Tests use WireMock (`wiremock-jetty12:3.13.2`) to stub TfL API — no real network calls needed
+- **Never commit API keys or secrets** — `TFL_APP_KEY` and `TFL_APP_ID` must only be supplied via environment variables or CI secrets, never hardcoded in source files, test fixtures, or committed configuration
 
 ## Working Branch
 
