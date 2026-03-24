@@ -169,6 +169,32 @@ public class App {
                                         .build();
                             }
                         })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("journey")
+                                .description("Plan a journey between two points using the TfL Journey Planner")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(
+                                                "from", Map.of("type", "string", "description", "Origin: NaPTAN ID, postcode, or lat,lon"),
+                                                "to",   Map.of("type", "string", "description", "Destination: NaPTAN ID, postcode, or lat,lon")),
+                                        List.of("from", "to"),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String from = request.arguments().get("from").toString();
+                            String to   = request.arguments().get("to").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchJourney(from, to))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching journey: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
                 .build();
 
         jetty = new Server();
@@ -259,6 +285,27 @@ public class App {
               .append(": ").append(minutes).append(" min");
             if (!platform.isBlank()) sb.append(" (").append(platform).append(")");
             sb.append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchJourney(String from, String to) throws Exception {
+        String url = withAuth(tflBase + "/Journey/JourneyResults/" + from + "/to/" + to);
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var sb = new StringBuilder();
+        int journeyNum = 1;
+        for (JsonNode journey : root.path("journeys")) {
+            int duration = journey.path("duration").asInt();
+            sb.append("Journey ").append(journeyNum++).append(" (").append(duration).append(" min):\n");
+            for (JsonNode leg : journey.path("legs")) {
+                String summary = leg.path("instruction").path("summary").asText(
+                        leg.path("summary").asText());
+                int legDuration = leg.path("duration").asInt();
+                sb.append("  - ").append(summary).append(" (").append(legDuration).append(" min)\n");
+            }
         }
         return sb.toString().trim();
     }
