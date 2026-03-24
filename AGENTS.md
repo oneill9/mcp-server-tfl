@@ -64,10 +64,16 @@ We use **red-green TDD**:
 Pick up from the first unchecked item and follow the red-green TDD workflow above.
 
 - [x] `line_status` — current status of one or more lines (`GET /Line/{ids}/Status`)
-- [ ] `arrivals` — live arrivals at a stop (`GET /StopPoint/{id}/Arrivals`)
-- [ ] `stop_search` — search for stops by name/query (`GET /StopPoint/Search/{query}`)
-- [ ] `disruptions` — current disruptions by mode (`GET /Line/Mode/{modes}/Disruption`)
-- [ ] `journey` — plan a journey between two points (`GET /Journey/JourneyResults/{from}/to/{to}`)
-- [ ] `bike_points` — list Santander Cycles docking stations (`GET /BikePoint`)
-- [ ] Remove placeholder `echo` and `greet` tools once real tools are in place
-- [ ] Update README tools table to reflect all implemented tools
+- [x] `arrivals` — live arrivals at a stop (`GET /StopPoint/{id}/Arrivals`)
+- [x] `stop_search` — search for stops by name/query (`GET /StopPoint/Search/{query}`)
+- [x] `disruptions` — current disruptions by mode (`GET /Line/Mode/{modes}/Disruption`)
+- [x] `journey` — plan a journey between two points (`GET /Journey/JourneyResults/{from}/to/{to}`)
+- [x] `bike_points` — list Santander Cycles docking stations (`GET /BikePoint`)
+- [x] Remove placeholder `echo` and `greet` tools once real tools are in place
+- [x] Update README tools table to reflect all implemented tools
+- [x] `list_modes` — get valid TfL transport modes (`GET /Line/Meta/Modes`)
+- [x] `air_quality` — get London air quality feed (`GET /AirQuality`)
+- [x] `road_disruptions` — get disrupted streets and A-roads (`GET /Road/all/Street/Disruption`)
+- [x] `list_modes` — get valid TfL transport modes (`GET /Line/Meta/Modes`)
+- [x] `air_quality` — get London air quality feed (`GET /AirQuality`)
+- [x] `road_disruptions` — get disrupted streets and A-roads (`GET /Road/all/Street/Disruption`)

@@ -54,7 +54,7 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("arrivals")
-                                .description("Get live arrivals at a TfL stop (e.g. 940GZZLUOXC)")
+                                .description("Get live arrivals at a TfL stop. You should usually call the stop_search tool first to find the correct National Public Transport Access Node (NaPTAN) stopId.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
                                         Map.of("stopId", Map.of("type", "string", "description", "NaPTAN stop ID, e.g. 940GZZLUOXC")),
@@ -77,7 +77,7 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("stop_search")
-                                .description("Search for TfL stops by name or query string")
+                                .description("Search for TfL stops by common name or search term. Use this tool first to lookup the stopId required by the arrivals tool.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
                                         Map.of("query", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
@@ -100,10 +100,10 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("disruptions")
-                                .description("Get current disruptions for one or more TfL modes (e.g. tube, bus, elizabeth-line)")
+                                .description("Get current disruptions for one or more TfL transport modes. Call the list_modes tool to see all valid modes.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus")),
+                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,dlr,overground")),
                                         List.of("modes"),
                                         null, null, null))
                                 .build(),
@@ -123,10 +123,10 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("line_status")
-                                .description("Get the current status of one or more TfL lines (e.g. central, victoria, jubilee)")
+                                .description("Get the current operational status and delays for one or more TfL lines.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria")),
+                                        Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria,circle,dlr")),
                                         List.of("lines"),
                                         null, null, null))
                                 .build(),
@@ -146,7 +146,7 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("bike_points")
-                                .description("List Santander Cycles docking stations with available bikes and empty docks")
+                                .description("List all Santander Cycles docking stations across London with currently available bikes and empty docks.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
                                         Map.of(),
@@ -168,7 +168,7 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("journey")
-                                .description("Plan a journey between two points using the TfL Journey Planner")
+                                .description("Plan a journey between two points using the TfL Journey Planner. Can bridge different transport modes seamlessly.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
                                         Map.of(
@@ -187,6 +187,72 @@ public class App {
                             } catch (Exception e) {
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent("Error fetching journey: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("list_modes")
+                                .description("Get a list of all valid TfL transport modes (e.g., tube, bus, dlr, overground).")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(),
+                                        List.of(),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchListModes())
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching modes: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("air_quality")
+                                .description("Get the latest London air quality data feed.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(),
+                                        List.of(),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchAirQuality())
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching air quality: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("road_disruptions")
+                                .description("Get a list of disrupted streets and A-roads in London.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(),
+                                        List.of(),
+                                        null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchRoadDisruptions())
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching road disruptions: " + e.getMessage())
                                         .isError(true)
                                         .build();
                             }
@@ -226,6 +292,42 @@ public class App {
         if (TFL_APP_KEY != null && !TFL_APP_KEY.isBlank()) params.add("app_key=" + TFL_APP_KEY);
         if (params.isEmpty()) return url;
         return url + "?" + String.join("&", params);
+    }
+
+    private String fetchListModes() throws Exception {
+        String url = withAuth(tflBase + "/Line/Meta/Modes");
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var modes = new ArrayList<String>();
+        for (JsonNode mode : root) {
+            modes.add(mode.path("modeName").asText());
+        }
+        return String.join(", ", modes);
+    }
+
+    private String fetchAirQuality() throws Exception {
+        String url = withAuth(tflBase + "/AirQuality");
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+        return root.toPrettyString();
+    }
+
+    private String fetchRoadDisruptions() throws Exception {
+        String url = withAuth(tflBase + "/Road/all/Street/Disruption");
+        var request = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        var response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode root = JSON.readTree(response.body());
+
+        var sb = new StringBuilder();
+        for (JsonNode disruption : root) {
+            String location = disruption.path("location").asText("Unknown Location");
+            String comments = disruption.path("comments").asText("");
+            sb.append(location).append(": ").append(comments).append("\n");
+        }
+        return sb.toString().trim();
     }
 
     private String fetchDisruptions(String modes) throws Exception {

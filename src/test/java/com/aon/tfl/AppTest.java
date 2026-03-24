@@ -87,6 +87,35 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/Line/Meta/Modes"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"modeName":"tube","isTflService":true},
+                                  {"modeName":"bus","isTflService":true},
+                                  {"modeName":"dlr","isTflService":true}
+                                ]
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/AirQuality"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"forecastSummary":"Low pollution today"}
+                                ]
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/Road/all/Street/Disruption"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"location":"A406 North Circular","comments":"Lane closed due to roadworks"}
+                                ]
+                                """)));
+
         wireMock.stubFor(get(urlPathMatching("/Journey/JourneyResults/1000123/to/1000456"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -275,5 +304,59 @@ class AppTest {
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("Clerkenwell") || text.contains("River Street"), "Response should mention a docking station name");
         assertTrue(text.contains("9") || text.contains("BikePoints_1"), "Response should include bike availability info");
+    }
+
+    // --- list_modes ---
+
+    @Test
+    void listToolsContainsListModes() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("list_modes"), "Should contain list_modes tool");
+    }
+
+    @Test
+    void listModesReturnsAvailableModes() {
+        var result = client.callTool(new McpSchema.CallToolRequest("list_modes", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("tube"), "Response should mention tube");
+        assertTrue(text.contains("bus"), "Response should mention bus");
+        assertTrue(text.contains("dlr"), "Response should mention dlr");
+    }
+
+    // --- air_quality ---
+
+    @Test
+    void listToolsContainsAirQuality() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("air_quality"), "Should contain air_quality tool");
+    }
+
+    @Test
+    void airQualityReturnsFeed() {
+        var result = client.callTool(new McpSchema.CallToolRequest("air_quality", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Low pollution"), "Response should contain mock air quality info");
+    }
+
+    // --- road_disruptions ---
+
+    @Test
+    void listToolsContainsRoadDisruptions() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("road_disruptions"), "Should contain road_disruptions tool");
+    }
+
+    @Test
+    void roadDisruptionsReturnsDisruptions() {
+        var result = client.callTool(new McpSchema.CallToolRequest("road_disruptions", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("A406"), "Response should mention the location");
+        assertTrue(text.contains("roadworks"), "Response should mention the comments");
     }
 }
