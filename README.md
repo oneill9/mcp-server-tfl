@@ -1,6 +1,6 @@
 # TFL MCP Server
 
-[![Build](https://github.com/oneill9/tfl/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/tfl/actions/workflows/build.yml)
+[![Build](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml)
 
 An MCP (Model Context Protocol) server that exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) as tools, allowing AI assistants like Claude to query live London transport data.
 

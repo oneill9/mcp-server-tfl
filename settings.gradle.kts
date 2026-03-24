@@ -1,1 +1,1 @@
-rootProject.name = "tfl"
+rootProject.name = "mcp-server-tfl"
