@@ -1,5 +1,6 @@
 package com.aon.tfl;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
@@ -12,19 +13,41 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AppTest {
 
+    static WireMockServer wireMock;
     static App app;
     static McpSyncClient client;
 
     @BeforeAll
     static void setUp() throws Exception {
-        app = new App(0); // port 0 = random available port
+        wireMock = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMock.start();
+
+        wireMock.stubFor(get(urlPathMatching("/Line/central/Status"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [{"id":"central","name":"Central","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]}]
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/Line/central,victoria/Status"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"id":"central","name":"Central","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
+                                  {"id":"victoria","name":"Victoria","lineStatuses":[{"statusSeverityDescription":"Minor Delays","reason":"Earlier signal failure"}]}
+                                ]
+                                """)));
+
+        app = new App(0, "http://localhost:" + wireMock.port());
         app.start();
 
-        // Get the actual port Jetty chose
         int port = ((org.eclipse.jetty.server.ServerConnector)
                 app.getJetty().getConnectors()[0]).getLocalPort();
 
@@ -43,6 +66,7 @@ class AppTest {
     static void tearDown() throws Exception {
         if (client != null) client.close();
         if (app != null) app.stop();
+        if (wireMock != null) wireMock.stop();
     }
 
     @Test
@@ -59,12 +83,11 @@ class AppTest {
     }
 
     @Test
-    void listToolsReturnsEchoAndGreet() {
+    void listToolsContainsEchoAndGreet() {
         var result = client.listTools();
         var names = result.tools().stream().map(McpSchema.Tool::name).toList();
         assertTrue(names.contains("echo"), "Should contain echo tool");
         assertTrue(names.contains("greet"), "Should contain greet tool");
-        assertEquals(2, names.size());
     }
 
     @Test
@@ -82,5 +105,32 @@ class AppTest {
         assertFalse(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertEquals("Hello, Alice! Welcome to TFL.", text);
+    }
+
+    // --- line_status ---
+
+    @Test
+    void listToolsContainsLineStatus() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("line_status"), "Should contain line_status tool");
+    }
+
+    @Test
+    void lineStatusReturnsStatusForCentralLine() {
+        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "central")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
+        assertTrue(text.contains("Good Service"), "Response should contain the status");
+    }
+
+    @Test
+    void lineStatusAcceptsMultipleLines() {
+        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "central,victoria")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
+        assertTrue(text.toLowerCase().contains("victoria"), "Response should mention Victoria line");
     }
 }
