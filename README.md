@@ -63,6 +63,12 @@ For full setup details and the Java-direct option, see [docs/installation.md](do
 | `air_quality` | Get the latest London air quality data feed | `GET /AirQuality` |
 | `road_disruptions` | Get a list of disrupted streets and A-roads | `GET /Road/all/Street/Disruption` |
 
+## Authentication
+
+This server is distributed as a **Desktop extension (MCPB)** using stdio transport. It does not implement OAuth or any server-side authentication.
+
+The TfL API uses a simple API key (`TFL_APP_KEY`) that you supply as an environment variable. The key is **optional** — the server works without one at lower rate limits. No OAuth flow, login, or account is required to use this MCP server.
+
 ## Configuration
 
 | Environment Variable | Default | Description |
