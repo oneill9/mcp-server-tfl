@@ -2,6 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.oneill9/mcp-server-tfl",
   "description": "Real-time London transport data via the TfL Unified API.",
+  "icon": "https://raw.githubusercontent.com/oneill9/mcp-server-tfl/main/docs/logo.svg",
   "repository": {
     "url": "https://github.com/oneill9/mcp-server-tfl",
     "source": "github"

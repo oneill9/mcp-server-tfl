@@ -1,5 +1,7 @@
 # TFL MCP Server
 
+<img src="docs/logo.svg" alt="TfL MCP Server logo" width="80" align="right"/>
+
 [![Build](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml)
 [![Contract Tests](https://github.com/oneill9/mcp-server-tfl/actions/workflows/contract-tests.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/contract-tests.yml)
 [![GitHub release](https://img.shields.io/github/v/release/oneill9/mcp-server-tfl)](https://github.com/oneill9/mcp-server-tfl/releases)
