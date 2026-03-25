@@ -3,13 +3,7 @@ package com.tfl;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
-import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema;
-
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
-import org.eclipse.jetty.ee10.servlet.ServletHolder;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,31 +26,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class ContractTest {
 
     static App app;
-    static Server jetty;
     static McpSyncClient client;
 
     @BeforeAll
     static void setUp() throws Exception {
-        var transportProvider = HttpServletSseServerTransportProvider.builder()
-                .messageEndpoint("/mcp/message")
-                .sseEndpoint("/sse")
-                .build();
+        app = App.startHttp(0, "https://api.tfl.gov.uk");
 
-        app = new App(transportProvider, "https://api.tfl.gov.uk");
-
-        jetty = new Server();
-        ServerConnector connector = new ServerConnector(jetty);
-        connector.setPort(0);
-        jetty.addConnector(connector);
-        ServletContextHandler context = new ServletContextHandler();
-        context.setContextPath("/");
-        context.addServlet(new ServletHolder(transportProvider), "/*");
-        jetty.setHandler(context);
-        jetty.start();
-
-        int port = ((ServerConnector) jetty.getConnectors()[0]).getLocalPort();
-
-        var transport = HttpClientSseClientTransport.builder("http://localhost:" + port)
+        var transport = HttpClientSseClientTransport.builder("http://localhost:" + app.getPort())
                 .sseEndpoint("/sse")
                 .build();
 
@@ -71,7 +47,6 @@ class ContractTest {
     static void tearDown() throws Exception {
         if (client != null) client.close();
         if (app != null) app.stop();
-        if (jetty != null) jetty.stop();
     }
 
     @Test

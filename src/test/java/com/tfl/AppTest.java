@@ -4,13 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
-import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema;
-
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
-import org.eclipse.jetty.ee10.servlet.ServletHolder;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,7 +21,6 @@ class AppTest {
 
     static WireMockServer wireMock;
     static App app;
-    static Server jetty;
     static McpSyncClient client;
 
     @BeforeAll
@@ -167,26 +160,9 @@ class AppTest {
                                 }
                                 """)));
 
-        var transportProvider = HttpServletSseServerTransportProvider.builder()
-                .messageEndpoint("/mcp/message")
-                .sseEndpoint("/sse")
-                .build();
+        app = App.startHttp(0, "http://localhost:" + wireMock.port());
 
-        app = new App(transportProvider, "http://localhost:" + wireMock.port());
-
-        jetty = new Server();
-        ServerConnector connector = new ServerConnector(jetty);
-        connector.setPort(0);
-        jetty.addConnector(connector);
-        ServletContextHandler context = new ServletContextHandler();
-        context.setContextPath("/");
-        context.addServlet(new ServletHolder(transportProvider), "/*");
-        jetty.setHandler(context);
-        jetty.start();
-
-        int port = ((ServerConnector) jetty.getConnectors()[0]).getLocalPort();
-
-        var transport = HttpClientSseClientTransport.builder("http://localhost:" + port)
+        var transport = HttpClientSseClientTransport.builder("http://localhost:" + app.getPort())
                 .sseEndpoint("/sse")
                 .build();
 
@@ -201,7 +177,6 @@ class AppTest {
     static void tearDown() throws Exception {
         if (client != null) client.close();
         if (app != null) app.stop();
-        if (jetty != null) jetty.stop();
         if (wireMock != null) wireMock.stop();
     }
 

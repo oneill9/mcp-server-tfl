@@ -22,14 +22,16 @@ dependencies {
     // JSON parsing for TfL API responses (Jackson 2)
     implementation(libs.jackson.databind)
 
+    // Jetty — hosts the SSE transport for HTTP mode
+    implementation(libs.jetty.server)
+    implementation(libs.jetty.servlet)
+
     // Logging
     implementation(libs.slf4j.api)
     runtimeOnly(libs.log4j.slf4j2.impl)
     runtimeOnly(libs.log4j.core)
 
-    // Testing — Jetty used only to host the SSE transport in tests
-    testImplementation(libs.jetty.server)
-    testImplementation(libs.jetty.servlet)
+    // Testing
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.wiremock)
     testRuntimeOnly(libs.junit.platform.launcher)
