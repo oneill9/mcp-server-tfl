@@ -6,11 +6,11 @@
     "url": "https://github.com/oneill9/mcp-server-tfl",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/oneill9/mcp-server-tfl:1.0.0",
+      "identifier": "ghcr.io/oneill9/mcp-server-tfl:1.0.1",
       "transport": {
         "type": "stdio"
       },
