@@ -4,12 +4,18 @@ import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpSyncServer;
+import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportProvider;
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -54,6 +60,7 @@ public class App {
 
     private final McpSyncServer mcpServer;
     private final String tflBase;
+    private Server jettyServer;
 
     public App(McpServerTransportProvider transportProvider, String tflBase) {
         this.tflBase = tflBase;
@@ -272,8 +279,41 @@ public class App {
                 .build();
     }
 
+    /**
+     * Start the MCP server in HTTP mode with SSE transport on the given port.
+     * Use port 0 for a dynamically allocated port (retrieve with {@link #getPort()}).
+     */
+    public static App startHttp(int port, String tflBase) throws Exception {
+        var transportProvider = HttpServletSseServerTransportProvider.builder()
+                .messageEndpoint("/mcp/message")
+                .sseEndpoint("/sse")
+                .build();
+
+        var app = new App(transportProvider, tflBase);
+
+        var jetty = new Server();
+        var connector = new ServerConnector(jetty);
+        connector.setPort(port);
+        jetty.addConnector(connector);
+        var context = new ServletContextHandler();
+        context.setContextPath("/");
+        context.addServlet(new ServletHolder(transportProvider), "/*");
+        jetty.setHandler(context);
+        jetty.start();
+
+        app.jettyServer = jetty;
+        return app;
+    }
+
+    /** Returns the HTTP port the server is listening on, or -1 if not in HTTP mode. */
+    public int getPort() {
+        if (jettyServer == null) return -1;
+        return ((ServerConnector) jettyServer.getConnectors()[0]).getLocalPort();
+    }
+
     public void stop() throws Exception {
         mcpServer.closeGracefully();
+        if (jettyServer != null) jettyServer.stop();
     }
 
     private String withAuth(String url) {
@@ -427,10 +467,20 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        McpJsonMapper jsonMapper = new JacksonMcpJsonMapper(new JsonMapper());
-        var transportProvider = new StdioServerTransportProvider(jsonMapper);
-        var app = new App(transportProvider, "https://api.tfl.gov.uk");
-        log.info("TfL MCP server started (stdio transport)");
+        boolean httpMode = Arrays.asList(args).contains("--http");
+
+        final App app;
+        if (httpMode) {
+            int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+            app = startHttp(port, "https://api.tfl.gov.uk");
+            log.info("TfL MCP server started (HTTP/SSE transport on port {})", app.getPort());
+        } else {
+            McpJsonMapper jsonMapper = new JacksonMcpJsonMapper(new JsonMapper());
+            var transportProvider = new StdioServerTransportProvider(jsonMapper);
+            app = new App(transportProvider, "https://api.tfl.gov.uk");
+            log.info("TfL MCP server started (stdio transport)");
+        }
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try { app.stop(); } catch (Exception ignored) {}
         }));
