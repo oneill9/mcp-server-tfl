@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.oneill9/mcp-server-tfl",
+  "description": "Real-time London transport data via the TfL Unified API — line status, arrivals, journey planning, disruptions, bike points, air quality, and more.",
+  "repository": {
+    "url": "https://github.com/oneill9/mcp-server-tfl",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/oneill9/mcp-server-tfl:1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TFL_APP_KEY",
+          "description": "TfL API key — optional, but raises rate limits. Register at https://api-portal.tfl.gov.uk/",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
