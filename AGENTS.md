@@ -63,3 +63,68 @@ We use **red-green TDD**:
 ## Feature Backlog
 
 Pick up from the first unchecked item and follow the red-green TDD workflow above.
+
+## Connectors Directory Submission Checklist
+
+Tasks required to meet the [Anthropic Connectors Directory](https://docs.anthropic.com/en/docs/connectors/directory) submission standards. Pick up from the first unchecked item.
+
+### Tool Annotations (Required)
+
+All tools must include `readOnlyHint` or `destructiveHint`. Currently **none of the 9 tools** have these annotations.
+
+- [ ] Add `readOnlyHint: true` annotation to all 9 tools (`line_status`, `arrivals`, `stop_search`, `disruptions`, `journey`, `bike_points`, `list_modes`, `air_quality`, `road_disruptions`) — all are read-only queries against the TfL API
+- [ ] Add tests verifying tool annotations are present (query tool list via MCP client and assert hints exist)
+
+### Privacy Policy (Required for local connectors)
+
+No privacy policy currently exists. Required for MCPB/Desktop extension submission.
+
+- [ ] Add a "Privacy Policy" section to `README.md` covering: data collection practices, usage and storage, third-party sharing (TfL API), data retention, contact information
+- [ ] Add `privacy_policies` array with HTTPS URL(s) to `server.json` manifest (manifest_version 0.2+)
+- [ ] Host the privacy policy at a stable HTTPS URL (e.g. GitHub Pages or repo raw link)
+
+### Authentication (Required — assess applicability)
+
+OAuth 2.0 is required for authenticated services. TfL uses a simple API key model, not OAuth.
+
+- [ ] Determine submission category: if submitting as a **remote MCP**, assess whether OAuth 2.0 is needed for the server's own client auth (separate from TfL API key)
+- [ ] If submitting as **Desktop extension (MCPB)** only, document that the TfL API key is optional and supplied via environment variable — no OAuth flow needed
+
+### Documentation & Support (Required)
+
+Current docs are good but need enhancement for reviewer onboarding.
+
+- [ ] Add clear "Getting Started" / setup instructions to README aimed at a first-time reviewer unfamiliar with the project
+- [ ] Document all 9 tools with human-readable names and descriptions (current `docs/tools.md` is a good start — ensure it's comprehensive and matches submission form fields)
+- [ ] Provide a support channel link (e.g. GitHub Issues URL)
+- [ ] Prepare step-by-step test account instructions: how to get a TfL API key, configure the server, and verify it works (note: works without key at lower rate limits)
+
+### Branding (Required)
+
+No branding assets currently exist.
+
+- [ ] Create a server logo (SVG preferred) — e.g. a TfL roundel-inspired icon (be mindful of TfL trademark)
+- [ ] Verify favicon is set if hosting a web presence
+- [ ] Prepare promotional screenshot(s) showing the server in action with Claude
+
+### Compliance & Policy (Required)
+
+- [ ] Review and confirm compliance with [Anthropic Software Directory Terms](https://support.claude.com/en/articles/13145338-anthropic-software-directory-terms)
+- [ ] Review and confirm compliance with [Anthropic Software Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy)
+- [ ] Confirm commitment to maintain security, respond to issues promptly, and provide accurate descriptions
+
+### Testing & Launch Readiness (Required)
+
+- [ ] Test the server in Claude Desktop (stdio transport) and verify all 9 tools work end-to-end
+- [ ] Test the server as a remote MCP (HTTP/SSE transport) and verify connectivity
+- [ ] Ensure all unit tests pass: `./gradlew test`
+- [ ] Ensure contract tests pass: `./gradlew contractTest`
+- [ ] Confirm GA readiness and target launch date
+
+### Submission Form Preparation
+
+- [ ] Prepare server basics: name, URL, tagline, description, use cases
+- [ ] Prepare connection details: auth type, transport protocol, read/write capabilities
+- [ ] Prepare data & compliance info: data handling practices, third-party connections (TfL API), health data access (none), category (transport/travel)
+- [ ] Compile full tool list with human-readable names for submission form
+- [ ] Choose submission path: [Desktop extension form](http://clau.de/desktop-extention-submission) or [Remote MCP form](http://clau.de/mcp-directory-submission)
