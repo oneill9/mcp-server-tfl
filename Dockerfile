@@ -14,6 +14,8 @@ COPY --from=builder /app/build/install/mcp-server-tfl /app
 RUN chmod +x /app/bin/mcp-server-tfl \
     && addgroup -S app && adduser -S app -G app
 
+LABEL io.modelcontextprotocol.server.name="io.github.oneill9/mcp-server-tfl"
+
 USER app
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
