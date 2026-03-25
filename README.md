@@ -44,8 +44,16 @@ For use with Claude Desktop, see [docs/installation.md](docs/installation.md).
 
 ## Testing
 
+Unit tests use WireMock to stub the TfL API — no network access or API key required:
+
 ```sh
 ./gradlew test
+```
+
+Contract tests spin up the server as a real subprocess (the same way Claude Desktop does) and call the live TfL API:
+
+```sh
+TFL_APP_KEY=your_key_here ./gradlew contractTest
 ```
 
 ## TfL API Reference
