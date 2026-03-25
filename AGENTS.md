@@ -76,32 +76,32 @@ Tasks required to meet the [Anthropic Connectors Directory](https://docs.anthrop
 
 All tools must include `readOnlyHint` or `destructiveHint`. Currently **none of the 9 tools** have these annotations.
 
-- [ ] Add `readOnlyHint: true` annotation to all 9 tools (`line_status`, `arrivals`, `stop_search`, `disruptions`, `journey`, `bike_points`, `list_modes`, `air_quality`, `road_disruptions`) — all are read-only queries against the TfL API
-- [ ] Add tests verifying tool annotations are present (query tool list via MCP client and assert hints exist)
+- [x] Add `readOnlyHint: true` annotation to all 9 tools (`line_status`, `arrivals`, `stop_search`, `disruptions`, `journey`, `bike_points`, `list_modes`, `air_quality`, `road_disruptions`) — all are read-only queries against the TfL API
+- [x] Add tests verifying tool annotations are present (query tool list via MCP client and assert hints exist)
 
 ### Privacy Policy (Required for local connectors)
 
 No privacy policy currently exists. Required for MCPB/Desktop extension submission.
 
-- [ ] Add a "Privacy Policy" section to `README.md` covering: data collection practices, usage and storage, third-party sharing (TfL API), data retention, contact information
-- [ ] Add `privacy_policies` array with HTTPS URL(s) to `server.json` manifest (manifest_version 0.2+)
-- [ ] Host the privacy policy at a stable HTTPS URL (e.g. GitHub Pages or repo raw link)
+- [x] Add a "Privacy Policy" section to `README.md` covering: data collection practices, usage and storage, third-party sharing (TfL API), data retention, contact information
+- [x] Add `privacy_policies` array with HTTPS URL(s) to `server.json` manifest (manifest_version 0.2+)
+- [x] Host the privacy policy at a stable HTTPS URL (e.g. GitHub Pages or repo raw link)
 
 ### Authentication (Required — assess applicability)
 
 OAuth 2.0 is required for authenticated services. TfL uses a simple API key model, not OAuth.
 
-- [ ] Determine submission category: if submitting as a **remote MCP**, assess whether OAuth 2.0 is needed for the server's own client auth (separate from TfL API key)
-- [ ] If submitting as **Desktop extension (MCPB)** only, document that the TfL API key is optional and supplied via environment variable — no OAuth flow needed
+- [x] Determine submission category: submitting as a **Desktop extension (MCPB)** via stdio transport — no OAuth flow needed
+- [x] Document that the TfL API key is optional and supplied via environment variable — no OAuth flow needed (documented in README Getting Started, Configuration, and `docs/api-keys.md`)
 
 ### Documentation & Support (Required)
 
 Current docs are good but need enhancement for reviewer onboarding.
 
-- [ ] Add clear "Getting Started" / setup instructions to README aimed at a first-time reviewer unfamiliar with the project
-- [ ] Document all 9 tools with human-readable names and descriptions (current `docs/tools.md` is a good start — ensure it's comprehensive and matches submission form fields)
-- [ ] Provide a support channel link (e.g. GitHub Issues URL)
-- [ ] Prepare step-by-step test account instructions: how to get a TfL API key, configure the server, and verify it works (note: works without key at lower rate limits)
+- [x] Add clear "Getting Started" / setup instructions to README aimed at a first-time reviewer unfamiliar with the project
+- [x] Document all 9 tools with human-readable names and descriptions (current `docs/tools.md` is a good start — ensure it's comprehensive and matches submission form fields)
+- [x] Provide a support channel link (e.g. GitHub Issues URL)
+- [x] Prepare step-by-step test account instructions: how to get a TfL API key, configure the server, and verify it works (note: works without key at lower rate limits)
 
 ### Branding (Required)
 
