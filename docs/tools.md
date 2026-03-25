@@ -1,15 +1,169 @@
-# Tools Overview
+# Tools Reference
 
-The TfL MCP Server provides a comprehensive suite of tools that integrate live public transport data into your AI assistant. Below is an exhaustive list.
+The TfL MCP Server exposes 9 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
 
-| Tool Name | Description | Example Queries |
-| --- | --- | --- |
-| `line_status` | Get current statuses for one or more lines | "Is the Central Line delayed?", "How is the Piccadilly Line?" |
-| `arrivals` | Fetch live arrival predictions for a specific stop | "When is the next bus arriving at stop 490001006E?" |
-| `stop_search` | Search for a transport stop name (like Oxford Circus) | "What's the station ID for King's Cross?" |
-| `journey` | Plan a journey between two points | "How do I get from Waterloo to London Bridge right now?" |
-| `disruptions` | Get active disruptions across transport modes | "Are there delays on the Tube network right now?" |
-| `bike_points` | Fetch Santander Cycles docking station availability | "Are there any bikes near Hyde Park?" |
-| `list_modes` | Get a list of all valid TfL transport modes | "What transport modes does the TfL API support?" |
-| `air_quality` | Retrieve real-time London air quality data | "What is the air quality like in London right now?" |
-| `road_disruptions` | Fetch a list of active disruptions on streets and A-roads | "Are there any road disruptions in central London?" |
+---
+
+## `line_status` — Line Status
+
+Get the current operational status of one or more TfL lines.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `lines` | string | Yes | Comma-separated line IDs, e.g. `central,victoria,circle,dlr` |
+
+**Example query:** *"Is the Central line running normally?"*
+
+**Example response:**
+```
+Central: Good Service
+Victoria: Minor Delays — Earlier signal failure at Stockwell
+```
+
+---
+
+## `arrivals` — Stop Arrivals
+
+Get live arrival predictions at a TfL stop. Use `stop_search` first to find the stop ID.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `stopId` | string | Yes | NaPTAN stop ID, e.g. `940GZZLUOXC` |
+
+**Example query:** *"When is the next tube from Oxford Circus?"*
+
+**Example response:**
+```
+Central → Epping: 2 min (Eastbound - Platform 2)
+Central → Epping: 5 min (Eastbound - Platform 2)
+```
+
+---
+
+## `stop_search` — Stop Search
+
+Search for TfL stops by common name or search term.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `query` | string | Yes | Stop name or search term, e.g. `oxford` |
+
+**Example query:** *"What is the stop ID for Oxford Circus?"*
+
+**Example response:**
+```
+940GZZLUOXC — Oxford Circus Underground Station
+490000173RC — Oxford Circus
+```
+
+---
+
+## `disruptions` — Disruptions by Mode
+
+Get current service disruptions for one or more TfL transport modes.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `modes` | string | Yes | Comma-separated transport modes, e.g. `tube,bus,dlr` |
+
+**Example query:** *"Are there any tube disruptions right now?"*
+
+**Example response:**
+```
+central: Minor delays due to earlier signal failure near Oxford Circus
+jubilee: Good service
+```
+
+---
+
+## `journey` — Journey Planner
+
+Plan a journey between two points using the TfL Journey Planner, combining different transport modes.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `from` | string | Yes | Origin: NaPTAN ID, postcode, or `lat,lon` |
+| `to` | string | Yes | Destination: NaPTAN ID, postcode, or `lat,lon` |
+
+**Example query:** *"How do I get from King's Cross to Canary Wharf?"*
+
+**Example response:**
+```
+Journey 1 (32 min):
+  - Take Piccadilly line to King's Cross St. Pancras (2 min)
+  - Take Jubilee line to Canary Wharf (28 min)
+  - Walk to destination (2 min)
+```
+
+---
+
+## `bike_points` — Santander Cycles Docking Stations
+
+List all Santander Cycles docking stations across London with current bike and empty dock availability.
+
+**Parameters:** None
+
+**Example query:** *"Are there any bikes available near Clerkenwell?"*
+
+**Example response:**
+```
+BikePoints_1 — River Street, Clerkenwell: 9 bikes, 9 empty docks
+BikePoints_2 — Phillimore Gardens, Kensington: 0 bikes, 13 empty docks
+```
+
+---
+
+## `list_modes` — Transport Modes
+
+Get a list of all valid TfL transport modes. Useful for building queries to `disruptions`.
+
+**Parameters:** None
+
+**Example query:** *"What transport modes does TfL support?"*
+
+**Example response:**
+```
+tube, bus, dlr, overground, elizabeth-line, tflrail, national-rail, river-bus, cable-car, tram, cycle-hire
+```
+
+---
+
+## `air_quality` — Air Quality
+
+Get the latest London air quality data feed from TfL.
+
+**Parameters:** None
+
+**Example query:** *"What is the air quality like in London today?"*
+
+**Example response:**
+```json
+{
+  "forecastSummary": "Low pollution forecast for today..."
+}
+```
+
+---
+
+## `road_disruptions` — Road Disruptions
+
+Get a list of current disruptions on streets and A-roads in London.
+
+**Parameters:** None
+
+**Example query:** *"Are there any road disruptions on the North Circular?"*
+
+**Example response:**
+```
+A406 North Circular: Lane closed due to roadworks between Junction 1 and Junction 2
+```

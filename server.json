@@ -7,6 +7,9 @@
     "source": "github"
   },
   "version": "1.0.1",
+  "privacy_policies": [
+    "https://raw.githubusercontent.com/oneill9/mcp-server-tfl/main/PRIVACY.md"
+  ],
   "packages": [
     {
       "registryType": "oci",

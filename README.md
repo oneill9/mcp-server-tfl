@@ -9,6 +9,46 @@ An MCP (Model Context Protocol) server that exposes the [TfL (Transport for Lond
 
 Built with Java 25, Gradle 9.4.1, Jetty 12, and the [MCP Java SDK](https://github.com/modelcontextprotocol/java-sdk) v1.1.0 (SSE transport).
 
+## Getting Started
+
+The quickest way to use this server is via Docker — no Java installation required.
+
+**Prerequisites:**
+- [Docker](https://docs.docker.com/get-docker/) (recommended), **or** Java 25 + Gradle 9
+
+**Step 1 — Add to Claude Desktop**
+
+Open your Claude Desktop config file:
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add the server under `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "tfl": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/oneill9/mcp-server-tfl:latest"]
+    }
+  }
+}
+```
+
+**Step 2 — (Optional) Add a TfL API key**
+
+The server works without a key at low rate limits. For heavier use, [register a free key](https://api-portal.tfl.gov.uk/) and pass it via the `TFL_APP_KEY` environment variable:
+
+```json
+"args": ["run", "-i", "--rm", "-e", "TFL_APP_KEY=your_key_here", "ghcr.io/oneill9/mcp-server-tfl:latest"]
+```
+
+**Step 3 — Restart Claude Desktop and start asking questions**
+
+Example: *"Is the Central line running normally?"*, *"When is the next bus from Oxford Circus?"*
+
+For full setup details and the Java-direct option, see [docs/installation.md](docs/installation.md).
+
 ## Tools
 
 | Tool | Description | TfL Endpoint |
@@ -55,6 +95,22 @@ Contract tests spin up the server as a real subprocess (the same way Claude Desk
 ```sh
 TFL_APP_KEY=your_key_here ./gradlew contractTest
 ```
+
+## Support
+
+For questions, bug reports, or feature requests, please open an issue on [GitHub Issues](https://github.com/oneill9/mcp-server-tfl/issues).
+
+## Privacy Policy
+
+This MCP server acts as a local proxy between your AI assistant and the [TfL Unified API](https://api.tfl.gov.uk/). It does not collect, store, or transmit any personal data beyond what is required to forward your queries to TfL.
+
+- **Data collection:** No user data is collected or logged by this server.
+- **Usage and storage:** Queries are forwarded to TfL in real time and responses are returned immediately. No query history or results are persisted.
+- **Third-party sharing:** Requests are forwarded to the TfL Unified API (`api.tfl.gov.uk`). See [TfL's privacy policy](https://tfl.gov.uk/corporate/privacy-and-cookies/) for how TfL handles API usage data.
+- **Data retention:** No data is retained. The server holds no state between requests.
+- **Contact:** For privacy concerns, open an issue at <https://github.com/oneill9/mcp-server-tfl/issues>.
+
+The full privacy policy is available at [PRIVACY.md](PRIVACY.md).
 
 ## TfL API Reference
 
