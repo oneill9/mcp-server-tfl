@@ -47,6 +47,10 @@ We use **red-green TDD**:
 3. Refactor if needed
 4. Commit and push
 
+### Java Version Note
+
+The project targets **Java 25** (`build.gradle.kts` toolchain). If the local environment only has an older JDK (e.g. Java 21) and you temporarily downgrade the toolchain to run tests, **you must restore it to Java 25 before committing**. The CI runners use Java 25 and the build will fail if `build.gradle.kts` specifies a lower version.
+
 ## Key Constraints
 
 - Keep `App.java` simple; extract service/helper classes only when complexity justifies it
