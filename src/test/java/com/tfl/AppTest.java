@@ -367,6 +367,22 @@ class AppTest {
         assertTrue(text.contains("roadworks"), "Response should mention the comments");
     }
 
+    // --- tool annotations ---
+
+    @Test
+    void allToolsHaveReadOnlyHint() {
+        var result = client.listTools();
+        var expectedTools = java.util.Set.of(
+                "line_status", "arrivals", "stop_search", "disruptions",
+                "journey", "bike_points", "list_modes", "air_quality", "road_disruptions");
+        for (McpSchema.Tool tool : result.tools()) {
+            if (!expectedTools.contains(tool.name())) continue;
+            assertNotNull(tool.annotations(), tool.name() + " should have annotations");
+            assertEquals(Boolean.TRUE, tool.annotations().readOnlyHint(),
+                    tool.name() + " should have readOnlyHint=true");
+        }
+    }
+
     // --- error handling ---
 
     @Test

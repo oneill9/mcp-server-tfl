@@ -79,6 +79,7 @@ public class App {
                                         Map.of("stopId", Map.of("type", "string", "description", "NaPTAN stop ID, e.g. 940GZZLUOXC")),
                                         List.of("stopId"),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             String stopId = request.arguments().get("stopId").toString();
@@ -102,6 +103,7 @@ public class App {
                                         Map.of("query", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
                                         List.of("query"),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             String query = request.arguments().get("query").toString();
@@ -125,6 +127,7 @@ public class App {
                                         Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,dlr,overground")),
                                         List.of("modes"),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             String modes = request.arguments().get("modes").toString();
@@ -148,6 +151,7 @@ public class App {
                                         Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria,circle,dlr")),
                                         List.of("lines"),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             String lines = request.arguments().get("lines").toString();
@@ -171,6 +175,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -195,6 +200,7 @@ public class App {
                                                 "to",   Map.of("type", "string", "description", "Destination: NaPTAN ID, postcode, or lat,lon")),
                                         List.of("from", "to"),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             String from = request.arguments().get("from").toString();
@@ -219,6 +225,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -241,6 +248,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -263,6 +271,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
