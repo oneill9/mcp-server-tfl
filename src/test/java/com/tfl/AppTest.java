@@ -209,7 +209,9 @@ class AppTest {
     void serverReportsCorrectInfo() {
         var info = client.getServerInfo();
         assertEquals("tfl-server", info.name());
-        assertEquals("1.0.0", info.version());
+        var props = new java.util.Properties();
+        try (var in = getClass().getResourceAsStream("/version.properties")) { props.load(in); } catch (Exception e) { throw new RuntimeException(e); }
+        assertEquals(props.getProperty("version"), info.version());
     }
 
     @Test
