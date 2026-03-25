@@ -113,9 +113,9 @@ No branding assets currently exist.
 
 ### Compliance & Policy (Required)
 
-- [ ] Review and confirm compliance with [Anthropic Software Directory Terms](https://support.claude.com/en/articles/13145338-anthropic-software-directory-terms)
-- [ ] Review and confirm compliance with [Anthropic Software Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy)
-- [ ] Confirm commitment to maintain security, respond to issues promptly, and provide accurate descriptions
+- [x] Review and confirm compliance with [Anthropic Software Directory Terms](https://support.claude.com/en/articles/13145338-anthropic-software-directory-terms)
+- [x] Review and confirm compliance with [Anthropic Software Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy)
+- [x] Confirm commitment to maintain security, respond to issues promptly, and provide accurate descriptions — see [COMPLIANCE.md](COMPLIANCE.md)
 
 ### Testing & Launch Readiness (Required)
 

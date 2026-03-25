@@ -120,6 +120,10 @@ This MCP server acts as a local proxy between your AI assistant and the [TfL Uni
 
 The full privacy policy is available at [PRIVACY.md](PRIVACY.md).
 
+## Compliance
+
+This server has been reviewed for compliance with the [Anthropic Software Directory Terms](https://support.claude.com/en/articles/13145338-anthropic-software-directory-terms) and [Anthropic Software Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy). See [COMPLIANCE.md](COMPLIANCE.md) for the full compliance statement and maintainer commitments.
+
 ## TfL API Reference
 
 - Unified API: <https://api.tfl.gov.uk/>
