@@ -7,6 +7,7 @@ There are two primary ways to run the TfL MCP server: using **Docker**, or runni
 Open your Claude Desktop configuration file. Usually, this is located at:
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
 Add the following to your `mcpServers` object, choosing either the Docker approach or the Java approach below:
 
