@@ -105,10 +105,8 @@ Current docs are good but need enhancement for reviewer onboarding.
 
 ### Branding (Required)
 
-No branding assets currently exist.
-
-- [ ] Create a server logo (SVG preferred) — e.g. a TfL roundel-inspired icon (be mindful of TfL trademark)
-- [ ] Verify favicon is set if hosting a web presence
+- [x] Create a server logo (SVG preferred) — `docs/logo.svg` exists (roundel-inspired design); referenced in `server.json` icon field
+- [x] Verify favicon is set if hosting a web presence — N/A: submitted as a Desktop extension (stdio), no web presence to favicon
 - [ ] Prepare promotional screenshot(s) showing the server in action with Claude
 
 ### Compliance & Policy (Required)
@@ -127,8 +125,10 @@ No branding assets currently exist.
 
 ### Submission Form Preparation
 
-- [ ] Prepare server basics: name, URL, tagline, description, use cases
-- [ ] Prepare connection details: auth type, transport protocol, read/write capabilities
-- [ ] Prepare data & compliance info: data handling practices, third-party connections (TfL API), health data access (none), category (transport/travel)
-- [ ] Compile full tool list with human-readable names for submission form
-- [ ] Choose submission path: [Desktop extension form](http://clau.de/desktop-extention-submission) or [Remote MCP form](http://clau.de/mcp-directory-submission)
+All content prepared in `docs/submission.md`.
+
+- [x] Prepare server basics: name, URL, tagline, description, use cases
+- [x] Prepare connection details: auth type, transport protocol, read/write capabilities
+- [x] Prepare data & compliance info: data handling practices, third-party connections (TfL API), health data access (none), category (transport/travel)
+- [x] Compile full tool list with human-readable names for submission form
+- [x] Choose submission path: Desktop extension form (stdio/OCI package transport)
