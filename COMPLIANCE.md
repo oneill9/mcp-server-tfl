@@ -1,6 +1,8 @@
 # Compliance Statement
 
-**Last updated: 2026-03-25**
+**Last updated: 2026-03-26**
+
+> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
 
 This document records the compliance review for the **TfL MCP Server** against the Anthropic Software Directory requirements.
 
@@ -22,7 +24,7 @@ We have reviewed the [Anthropic Software Directory Policy](https://support.claud
 - The server is a read-only integration with a public third-party API (TfL) — no destructive or sensitive operations are exposed.
 - No user personal data is collected, stored, or transmitted beyond forwarding queries to TfL in real time (see [PRIVACY.md](PRIVACY.md)).
 - The server does not facilitate or encourage any activity that violates Anthropic's usage policies.
-- The server logo and branding are original and do not infringe TfL trademarks.
+- The server logo and branding are original and do not infringe TfL trademarks. The project is clearly marked as community-built, with no affiliation to Transport for London.
 
 ## Commitment to Security, Responsiveness, and Accuracy
 

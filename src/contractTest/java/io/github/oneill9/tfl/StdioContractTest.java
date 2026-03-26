@@ -1,4 +1,4 @@
-package com.tfl;
+package io.github.oneill9.tfl;
 
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -50,7 +50,7 @@ class StdioContractTest {
         env.remove("TFL_APP_ID");
 
         var params = ServerParameters.builder(javaCmd)
-                .args("-cp", classpath, "com.tfl.App")
+                .args("-cp", classpath, "io.github.oneill9.tfl.App")
                 .env(env)
                 .build();
 

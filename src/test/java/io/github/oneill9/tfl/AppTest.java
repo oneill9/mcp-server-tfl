@@ -1,4 +1,4 @@
-package com.tfl;
+package io.github.oneill9.tfl;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.modelcontextprotocol.client.McpClient;

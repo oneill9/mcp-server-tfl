@@ -1,5 +1,7 @@
 # Installation
 
+> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
+
 There are two primary ways to run the TfL MCP server: using **Docker**, or running the **latest Java build** locally.
 
 ## Claude Desktop Configuration

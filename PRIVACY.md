@@ -1,6 +1,8 @@
 # Privacy Policy
 
-**Last updated: 2026-03-25**
+**Last updated: 2026-03-26**
+
+> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
 
 The TfL MCP Server (`mcp-server-tfl`) is an open-source local proxy that forwards transport queries from your AI assistant to the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/). This policy describes how the server handles data.
 

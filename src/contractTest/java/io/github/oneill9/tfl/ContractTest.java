@@ -1,4 +1,4 @@
-package com.tfl;
+package io.github.oneill9.tfl;
 
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;

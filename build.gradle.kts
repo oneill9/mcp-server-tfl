@@ -69,5 +69,5 @@ tasks.register<Test>("contractTest") {
 }
 
 application {
-    mainClass = "com.tfl.App"
+    mainClass = "io.github.oneill9.tfl.App"
 }

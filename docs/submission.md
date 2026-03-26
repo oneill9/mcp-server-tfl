@@ -10,8 +10,8 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 |-------|-------|
 | **Name** | TfL MCP Server |
 | **URL / Repository** | https://github.com/oneill9/mcp-server-tfl |
-| **Tagline** | Real-time London transport data via the TfL Unified API |
-| **Description** | An MCP server that wraps the Transport for London (TfL) Unified API, giving AI assistants like Claude live access to London transport data. Ask about tube line status, bus arrivals, journey planning, Santander Cycles availability, road disruptions, air quality, and more — all powered by official TfL data. |
+| **Tagline** | Community-built server — real-time London transport data via the TfL Unified API |
+| **Description** | A community-built MCP server that wraps the Transport for London (TfL) Unified API, giving AI assistants like Claude live access to London transport data. Not affiliated with or endorsed by Transport for London. Ask about tube line status, bus arrivals, journey planning, Santander Cycles availability, road disruptions, air quality, and more — powered by the publicly available TfL API. |
 | **Use cases** | Check whether a specific tube or bus line is running normally; get live arrival times at any London stop; plan a journey between two points; find the nearest Santander Cycles docking station; check for road disruptions on London's A-roads; monitor London air quality. |
 | **Category** | Transport / Travel |
 

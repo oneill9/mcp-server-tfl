@@ -1,4 +1,4 @@
-package com.tfl;
+package io.github.oneill9.tfl;
 
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
