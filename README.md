@@ -2,7 +2,7 @@
 
 <img src="docs/logo.svg" alt="TfL MCP Server logo" width="80" align="right"/>
 
-> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way. "TfL" and "Transport for London" are trademarks of Transport for London. This project simply consumes the publicly available [TfL Unified API](https://api.tfl.gov.uk/).
+> **Disclaimer:** This is a **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way. "TfL" and "Transport for London" are trademarks of Transport for London. This project simply consumes the publicly available [TfL Unified API](https://api.tfl.gov.uk/).
 
 [![Build](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml)
 [![Contract Tests](https://github.com/oneill9/mcp-server-tfl/actions/workflows/contract-tests.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/contract-tests.yml)

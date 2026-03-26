@@ -1,6 +1,6 @@
 # Transport for London (TfL) MCP Server
 
-> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
+> **Disclaimer:** This is a **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
 
 Welcome to the **TfL MCP Server** documentation.
 
