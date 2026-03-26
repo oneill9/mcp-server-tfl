@@ -1,7 +1,5 @@
 # Securing an API Key for the TfL API
 
-> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
-
 The server can run **without an API key**, but queries will be strictly rate-limited to just a handful of anonymous requests per minute per IP address.
 
 Providing the `TFL_APP_KEY` environment variable significantly raises the rate limits, allowing continuous AI usage. Optionally, you can also provide `TFL_APP_ID` alongside `TFL_APP_KEY` if your TfL registration issued you an App ID (older registrations).

@@ -1,7 +1,5 @@
 # Tools Reference
 
-> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
-
 The TfL MCP Server exposes 9 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
 
 ---
