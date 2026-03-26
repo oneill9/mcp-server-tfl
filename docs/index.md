@@ -1,13 +1,10 @@
 # Transport for London (TfL) MCP Server
 
-> **Disclaimer:** This is a **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
+> **Disclaimer:** This is a community-built project. It is not affiliated with, endorsed by, or connected to Transport for London (TfL) in any way.
 
-Welcome to the **TfL MCP Server** documentation.
+Welcome
 
-This is a community-built MCP (Model Context Protocol) server that exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) as tools, allowing AI assistants like Claude to query live London transport data.
-
-## What is MCP?
-The Model Context Protocol (MCP) allows AI models to securely interact with local or remote APIs, databases, and services to ground their responses in real, up-to-date data.
+This MCP server exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) tools, allowing AI assistants like Claude to query live London transport data.
 
 ## Features
 
