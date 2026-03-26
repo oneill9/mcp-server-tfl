@@ -71,20 +71,32 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-tags: true
+          fetch-depth: 0
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
           cache: gradle
-      
+
       - name: Build distributions
         run: ./gradlew distZip
-        
-      - name: Release Note Generation
-        id: generate-notes
+
+      - name: Build release notes
         run: |
-          cat > release_notes.md << 'EOF'
+          # Read the committed release notes (what changed in this version)
+          if [ -f RELEASE_NOTES.md ]; then
+            cat RELEASE_NOTES.md > release_notes.md
+          else
+            echo "No release notes provided." > release_notes.md
+          fi
+          echo "" >> release_notes.md
+          # Append the static installation template
+          cat >> release_notes.md << 'TEMPLATE'
+          ---
+
           ## Transport for London (TfL) MCP Server
 
           Provides real-time London transport data via the [Model Context Protocol](https://modelcontextprotocol.io/), making it accessible to AI assistants such as Claude.
@@ -112,7 +124,7 @@ jobs:
           ```json
           "tfl": {
             "command": "docker",
-            "args": ["run", "-i", "--rm", "ghcr.io/${{ github.repository }}:${{ github.ref_name }}"]
+            "args": ["run", "-i", "--rm", "ghcr.io/REPO:TAG"]
           }
           ```
 
@@ -127,8 +139,10 @@ jobs:
           ```
 
           An optional TfL API key can be passed via the `TFL_APP_KEY` environment variable to raise rate limits. Register at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
-          EOF
-          
+          TEMPLATE
+          # Replace REPO:TAG placeholder with actual values
+          sed -i "s|ghcr.io/REPO:TAG|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" release_notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

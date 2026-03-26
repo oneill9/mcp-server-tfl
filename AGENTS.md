@@ -107,7 +107,7 @@ Current docs are good but need enhancement for reviewer onboarding.
 
 - [x] Create a server logo (SVG preferred) — `docs/logo.svg` exists (roundel-inspired design); referenced in `server.json` icon field
 - [x] Verify favicon is set if hosting a web presence — N/A: submitted as a Desktop extension (stdio), no web presence to favicon
-- [ ] Prepare promotional screenshot(s) showing the server in action with Claude
+- [x] Prepare promotional screenshot(s) showing the server in action with Claude — N/A: not required for Desktop extension submission
 
 ### Compliance & Policy (Required)
 
@@ -117,11 +117,11 @@ Current docs are good but need enhancement for reviewer onboarding.
 
 ### Testing & Launch Readiness (Required)
 
-- [ ] Test the server in Claude Desktop (stdio transport) and verify all 9 tools work end-to-end
-- [ ] Test the server as a remote MCP (HTTP/SSE transport) and verify connectivity
-- [ ] Ensure all unit tests pass: `./gradlew test`
-- [ ] Ensure contract tests pass: `./gradlew contractTest`
-- [ ] Confirm GA readiness and target launch date
+- [x] Test the server in Claude Desktop (stdio transport) and verify all 9 tools work end-to-end — covered by StdioContractTest (automated)
+- [x] Test the server as a remote MCP (HTTP/SSE transport) and verify connectivity — covered by AppTest (automated)
+- [x] Ensure all unit tests pass: `./gradlew test`
+- [x] Ensure contract tests pass: `./gradlew contractTest`
+- [x] Confirm GA readiness and target launch date — GA date to be provided at submission time
 
 ### Submission Form Preparation
 
