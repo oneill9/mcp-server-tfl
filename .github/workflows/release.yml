@@ -119,7 +119,7 @@ jobs:
 
           #### Docker (recommended)
 
-          Add to your Claude Desktop `claude_desktop_config.json`:
+          Add to your Claude Desktop `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`, Linux: `~/.config/Claude/`):
 
           ```json
           "tfl": {
@@ -142,6 +142,28 @@ jobs:
           TEMPLATE
           # Replace REPO:TAG placeholder with actual values
           sed -i "s|ghcr.io/REPO:TAG|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" release_notes.md
+
+      - name: Update server.json version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          jq --arg v "$VERSION" \
+             --arg img "ghcr.io/${{ github.repository }}:$VERSION" \
+             '.version = $v | .packages[0].identifier = $img' \
+             server.json > server.json.tmp && mv server.json.tmp server.json
+
+      - name: Commit server.json back to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add server.json
+          if git diff --cached --quiet; then
+            echo "server.json already up to date"
+          else
+            git commit -m "chore: update server.json to ${GITHUB_REF_NAME#v}"
+            git push origin main
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
