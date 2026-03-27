@@ -116,6 +116,50 @@ class AppTest {
                                 ]
                                 """)));
 
+        wireMock.stubFor(get(urlPathMatching("/Line/central/Route/Sequence/outbound"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "lineId":"central","lineName":"Central","direction":"outbound",
+                                  "stopPointSequences":[{
+                                    "branchId":0,
+                                    "stopPoint":[
+                                      {"id":"940GZZLUEPG","name":"Epping Underground Station","lat":51.6937,"lon":0.1139},
+                                      {"id":"940GZZLUTHB","name":"Theydon Bois Underground Station","lat":51.6717,"lon":0.1033},
+                                      {"id":"940GZZLUOXC","name":"Oxford Circus Underground Station","lat":51.515,"lon":-0.1416}
+                                    ]
+                                  }]
+                                }
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/Crowding/940GZZLUOXC/Live"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {"dataAvailable":true,"percentageOfBaseline":0.6863}
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/StopPoint/940GZZLUOXC/FareTo/940GZZLUBND"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {
+                                    "header":"Single Fare Finder",
+                                    "rows":[{
+                                      "from":"Oxford Circus","to":"Bond Street",
+                                      "passengerType":"Adult",
+                                      "ticketsAvailable":[
+                                        {"ticketType":"Pay as you go","ticketTime":"Peak","cost":"2.80","mode":"tube"},
+                                        {"ticketType":"Pay as you go","ticketTime":"Off Peak","cost":"2.70","mode":"tube"},
+                                        {"ticketType":"CashSingle","ticketTime":"Anytime","cost":"6.70","mode":"tube"}
+                                      ]
+                                    }]
+                                  }
+                                ]
+                                """)));
+
         wireMock.stubFor(get(urlPathMatching("/Line/bad-line/Status"))
                 .willReturn(aResponse().withStatus(500)));
 
@@ -367,6 +411,64 @@ class AppTest {
         assertTrue(text.contains("roadworks"), "Response should mention the comments");
     }
 
+    // --- line_routes ---
+
+    @Test
+    void listToolsContainsLineRoutes() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("line_routes"), "Should contain line_routes tool");
+    }
+
+    @Test
+    void lineRoutesReturnsStopsInOrder() {
+        var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
+                Map.of("lineId", "central", "direction", "outbound")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Central"), "Response should mention the line name");
+        assertTrue(text.contains("Epping"), "Response should include a station on the route");
+        assertTrue(text.contains("Oxford Circus"), "Response should include another station");
+    }
+
+    // --- crowding ---
+
+    @Test
+    void listToolsContainsCrowding() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("crowding"), "Should contain crowding tool");
+    }
+
+    @Test
+    void crowdingReturnsLiveData() {
+        var result = client.callTool(new McpSchema.CallToolRequest("crowding",
+                Map.of("naptan", "940GZZLUOXC")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("0.6863") || text.contains("68"), "Response should include crowding percentage");
+    }
+
+    // --- fares ---
+
+    @Test
+    void listToolsContainsFares() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("fares"), "Should contain fares tool");
+    }
+
+    @Test
+    void faresReturnsFareBetweenStops() {
+        var result = client.callTool(new McpSchema.CallToolRequest("fares",
+                Map.of("fromStopId", "940GZZLUOXC", "toStopId", "940GZZLUBND")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Oxford Circus"), "Response should mention origin");
+        assertTrue(text.contains("Bond Street"), "Response should mention destination");
+        assertTrue(text.contains("2.80") || text.contains("Peak"), "Response should include fare info");
+    }
+
     // --- tool annotations ---
 
     @Test
@@ -374,7 +476,8 @@ class AppTest {
         var result = client.listTools();
         var expectedTools = java.util.Set.of(
                 "line_status", "arrivals", "stop_search", "disruptions",
-                "journey", "bike_points", "list_modes", "air_quality", "road_disruptions");
+                "journey", "bike_points", "list_modes", "air_quality", "road_disruptions",
+                "line_routes", "crowding", "fares");
         for (McpSchema.Tool tool : result.tools()) {
             if (!expectedTools.contains(tool.name())) continue;
             assertNotNull(tool.annotations(), tool.name() + " should have annotations");

@@ -67,6 +67,9 @@ For full setup details and the Java-direct option, see [docs/installation.md](do
 | `list_modes` | Get a list of all valid TfL transport modes | `GET /Line/Meta/Modes` |
 | `air_quality` | Get the latest London air quality data feed | `GET /AirQuality` |
 | `road_disruptions` | Get a list of disrupted streets and A-roads | `GET /Road/all/Street/Disruption` |
+| `line_routes` | Ordered sequence of stops along a line | `GET /Line/{id}/Route/Sequence/{direction}` |
+| `crowding` | Live station crowding level | `GET /Crowding/{naptan}/Live` |
+| `fares` | Fare information between two stops | `GET /StopPoint/{id}/FareTo/{targetId}` |
 
 ## Authentication
 

@@ -80,7 +80,7 @@ class StdioContractTest {
     }
 
     @Test
-    void serverAdvertisesAllNineTools() {
+    void serverAdvertisesAllTools() {
         var tools = client.listTools().tools();
         var names = tools.stream().map(McpSchema.Tool::name).toList();
         assertTrue(names.contains("line_status"));
@@ -92,6 +92,9 @@ class StdioContractTest {
         assertTrue(names.contains("list_modes"));
         assertTrue(names.contains("air_quality"));
         assertTrue(names.contains("road_disruptions"));
+        assertTrue(names.contains("line_routes"));
+        assertTrue(names.contains("crowding"));
+        assertTrue(names.contains("fares"));
     }
 
     // --- tools (unauthenticated) ---
@@ -168,5 +171,32 @@ class StdioContractTest {
     void roadDisruptionsWithoutKey() {
         var result = client.callTool(new McpSchema.CallToolRequest("road_disruptions", Map.of()));
         assertFalse(result.isError(), "road_disruptions should succeed without an API key");
+    }
+
+    @Test
+    void lineRoutesWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
+                Map.of("lineId", "central", "direction", "outbound")));
+        assertFalse(result.isError(), "line_routes should succeed without an API key");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Central"), "Response should mention the Central line");
+    }
+
+    @Test
+    void crowdingWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("crowding",
+                Map.of("naptan", "940GZZLUOXC")));
+        assertFalse(result.isError(), "crowding should succeed without an API key");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertFalse(text.isBlank(), "Response should be non-empty");
+    }
+
+    @Test
+    void faresWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("fares",
+                Map.of("fromStopId", "940GZZLUOXC", "toStopId", "940GZZLUBND")));
+        assertFalse(result.isError(), "fares should succeed without an API key");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertFalse(text.isBlank(), "Response should be non-empty");
     }
 }

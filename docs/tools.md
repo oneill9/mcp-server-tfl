@@ -1,6 +1,6 @@
 # Tools Reference
 
-The TfL MCP Server exposes 9 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
+The TfL MCP Server exposes 12 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
 
 ---
 
@@ -166,4 +166,69 @@ Get a list of current disruptions on streets and A-roads in London.
 **Example response:**
 ```
 A406 North Circular: Lane closed due to roadworks between Junction 1 and Junction 2
+```
+
+---
+
+## `line_routes` — Line Route Sequence
+
+Get the ordered sequence of stops along a TfL line in a given direction.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `lineId` | string | Yes | Line ID, e.g. `central`, `victoria`, `northern` |
+| `direction` | string | Yes | Direction of travel: `inbound` or `outbound` |
+
+**Example query:** *"What are all the stops on the Central line?"*
+
+**Example response:**
+```
+Central (outbound):
+  Epping Underground Station (940GZZLUEPG)
+  Theydon Bois Underground Station (940GZZLUTHB)
+  Oxford Circus Underground Station (940GZZLUOXC)
+```
+
+---
+
+## `crowding` — Station Crowding
+
+Get live crowding data for a TfL station, showing how busy it is compared to the typical baseline.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `naptan` | string | Yes | NaPTAN station ID, e.g. `940GZZLUOXC` |
+
+**Example query:** *"How busy is Oxford Circus right now?"*
+
+**Example response:**
+```
+940GZZLUOXC: 69% of typical crowding level (baseline ratio: 0.6863)
+```
+
+---
+
+## `fares` — Fare Finder
+
+Get fare information between two TfL stops, including pay-as-you-go and cash single prices.
+
+**Parameters:**
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `fromStopId` | string | Yes | Origin NaPTAN stop ID, e.g. `940GZZLUOXC` |
+| `toStopId` | string | Yes | Destination NaPTAN stop ID, e.g. `940GZZLUBND` |
+
+**Example query:** *"How much is a tube fare from Oxford Circus to Bond Street?"*
+
+**Example response:**
+```
+Oxford Circus → Bond Street (Adult):
+  £2.80 — Pay as you go (Peak)
+  £2.70 — Pay as you go (Off Peak)
+  £6.70 — CashSingle (Anytime)
 ```

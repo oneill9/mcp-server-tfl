@@ -23,7 +23,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 |-------|-------|
 | **Transport protocol** | stdio (Desktop extension / MCPB) |
 | **Auth type** | None (no OAuth). Optional TfL API key via `TFL_APP_KEY` environment variable. |
-| **Read / Write** | Read-only — all 9 tools are read-only queries against the TfL API. No write operations. |
+| **Read / Write** | Read-only — all 12 tools are read-only queries against the TfL API. No write operations. |
 | **Package** | `ghcr.io/oneill9/mcp-server-tfl:latest` (OCI / Docker) |
 
 ---
@@ -54,6 +54,9 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 | `list_modes` | Transport Modes | Get a list of all valid TfL transport mode identifiers for use in other tools. |
 | `air_quality` | Air Quality | Get the latest London air quality forecast from TfL. |
 | `road_disruptions` | Road Disruptions | Get current disruptions on London's streets and A-roads. |
+| `line_routes` | Line Route Sequence | Get the ordered sequence of stops along a TfL line in a given direction. |
+| `crowding` | Station Crowding | Get live crowding data for a TfL station as a percentage of the typical baseline. |
+| `fares` | Fare Finder | Get fare information between two TfL stops, including pay-as-you-go and cash prices. |
 
 ---
 

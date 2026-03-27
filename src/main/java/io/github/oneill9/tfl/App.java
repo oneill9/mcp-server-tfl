@@ -285,6 +285,84 @@ public class App {
                                         .build();
                             }
                         })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("line_routes")
+                                .description("Get the ordered sequence of stops along a TfL line in a given direction. Useful for seeing all stations on a line in order.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(
+                                                "lineId", Map.of("type", "string", "description", "Line ID, e.g. central, victoria, northern"),
+                                                "direction", Map.of("type", "string", "description", "Direction of travel: inbound or outbound")),
+                                        List.of("lineId", "direction"),
+                                        null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String lineId = request.arguments().get("lineId").toString();
+                            String direction = request.arguments().get("direction").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchLineRoutes(lineId, direction))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching line routes: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("crowding")
+                                .description("Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline. Use stop_search to find the NaPTAN ID first.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of("naptan", Map.of("type", "string", "description", "NaPTAN station ID, e.g. 940GZZLUOXC")),
+                                        List.of("naptan"),
+                                        null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String naptan = request.arguments().get("naptan").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchCrowding(naptan))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching crowding data: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("fares")
+                                .description("Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel. Use stop_search to find stop IDs first.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(
+                                                "fromStopId", Map.of("type", "string", "description", "Origin NaPTAN stop ID, e.g. 940GZZLUOXC"),
+                                                "toStopId", Map.of("type", "string", "description", "Destination NaPTAN stop ID, e.g. 940GZZLUBND")),
+                                        List.of("fromStopId", "toStopId"),
+                                        null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .build(),
+                        (exchange, request) -> {
+                            String fromStopId = request.arguments().get("fromStopId").toString();
+                            String toStopId = request.arguments().get("toStopId").toString();
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchFares(fromStopId, toStopId))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching fares: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
                 .build();
     }
 
@@ -455,6 +533,54 @@ public class App {
             }
             sb.append(id).append(" — ").append(name)
               .append(": ").append(bikes).append(" bikes, ").append(emptyDocks).append(" empty docks\n");
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchLineRoutes(String lineId, String direction) throws Exception {
+        JsonNode root = httpGet("/Line/" + encodePath(lineId) + "/Route/Sequence/" + encodePath(direction));
+        String lineName = root.path("lineName").asText(lineId);
+        var sb = new StringBuilder();
+        sb.append(lineName).append(" (").append(direction).append("):\n");
+        for (JsonNode sequence : root.path("stopPointSequences")) {
+            for (JsonNode stop : sequence.path("stopPoint")) {
+                String name = stop.path("name").asText();
+                String id = stop.path("id").asText();
+                sb.append("  ").append(name).append(" (").append(id).append(")\n");
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchCrowding(String naptan) throws Exception {
+        JsonNode root = httpGet("/Crowding/" + encodePath(naptan) + "/Live");
+        boolean available = root.path("dataAvailable").asBoolean(false);
+        if (!available) {
+            return "Crowding data not available for " + naptan;
+        }
+        double pct = root.path("percentageOfBaseline").asDouble();
+        long rounded = Math.round(pct * 100);
+        return naptan + ": " + rounded + "% of typical crowding level (baseline ratio: " + pct + ")";
+    }
+
+    private String fetchFares(String fromStopId, String toStopId) throws Exception {
+        JsonNode root = httpGet("/StopPoint/" + encodePath(fromStopId) + "/FareTo/" + encodePath(toStopId));
+        var sb = new StringBuilder();
+        for (JsonNode section : root) {
+            for (JsonNode row : section.path("rows")) {
+                String from = row.path("from").asText();
+                String to = row.path("to").asText();
+                String passenger = row.path("passengerType").asText("Adult");
+                sb.append(from).append(" → ").append(to).append(" (").append(passenger).append("):\n");
+                for (JsonNode ticket : row.path("ticketsAvailable")) {
+                    String type = ticket.path("ticketType").asText();
+                    String time = ticket.path("ticketTime").asText();
+                    String cost = ticket.path("cost").asText();
+                    sb.append("  £").append(cost).append(" — ").append(type);
+                    if (!time.isBlank()) sb.append(" (").append(time).append(")");
+                    sb.append("\n");
+                }
+            }
         }
         return sb.toString().trim();
     }

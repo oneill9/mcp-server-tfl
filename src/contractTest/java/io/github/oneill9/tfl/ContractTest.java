@@ -142,4 +142,36 @@ class ContractTest {
         assertFalse(result.isError(), "road_disruptions should not return an error");
         // May legitimately be empty when roads are clear
     }
+
+    @Test
+    void lineRoutesReturnsRealStops() {
+        var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
+                Map.of("lineId", "central", "direction", "outbound")));
+        assertFalse(result.isError(), "line_routes should not return an error");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertFalse(text.isBlank(), "line_routes should return a non-empty response");
+        assertTrue(text.contains("Central"), "Response should mention the Central line");
+    }
+
+    @Test
+    void crowdingReturnsRealData() {
+        // 940GZZLUOXC = Oxford Circus Underground Station
+        var result = client.callTool(new McpSchema.CallToolRequest("crowding",
+                Map.of("naptan", "940GZZLUOXC")));
+        assertFalse(result.isError(), "crowding should not return an error");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertFalse(text.isBlank(), "crowding should return a non-empty response");
+    }
+
+    @Test
+    void faresReturnsRealData() {
+        // Oxford Circus to Bond Street
+        var result = client.callTool(new McpSchema.CallToolRequest("fares",
+                Map.of("fromStopId", "940GZZLUOXC", "toStopId", "940GZZLUBND")));
+        assertFalse(result.isError(), "fares should not return an error");
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertFalse(text.isBlank(), "fares should return a non-empty response");
+        assertTrue(text.contains("Oxford Circus") || text.contains("Bond Street"),
+                "Response should mention the stations");
+    }
 }
