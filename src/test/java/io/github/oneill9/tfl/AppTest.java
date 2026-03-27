@@ -472,7 +472,7 @@ class AppTest {
     // --- tool annotations ---
 
     @Test
-    void allToolsHaveReadOnlyHint() {
+    void allToolsHaveRequiredAnnotations() {
         var result = client.listTools();
         var expectedTools = java.util.Set.of(
                 "line_status", "arrivals", "stop_search", "disruptions",
@@ -481,8 +481,14 @@ class AppTest {
         for (McpSchema.Tool tool : result.tools()) {
             if (!expectedTools.contains(tool.name())) continue;
             assertNotNull(tool.annotations(), tool.name() + " should have annotations");
+            assertNotNull(tool.annotations().title(),
+                    tool.name() + " should have a title");
+            assertFalse(tool.annotations().title().isBlank(),
+                    tool.name() + " title should not be blank");
             assertEquals(Boolean.TRUE, tool.annotations().readOnlyHint(),
                     tool.name() + " should have readOnlyHint=true");
+            assertEquals(Boolean.FALSE, tool.annotations().destructiveHint(),
+                    tool.name() + " should have destructiveHint=false");
         }
     }
 

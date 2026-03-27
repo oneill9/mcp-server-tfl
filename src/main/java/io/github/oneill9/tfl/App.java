@@ -79,7 +79,7 @@ public class App {
                                         Map.of("stopId", Map.of("type", "string", "description", "NaPTAN stop ID, e.g. 940GZZLUOXC")),
                                         List.of("stopId"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Live Arrivals", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String stopId = request.arguments().get("stopId").toString();
@@ -103,7 +103,7 @@ public class App {
                                         Map.of("query", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
                                         List.of("query"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Stop Search", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String query = request.arguments().get("query").toString();
@@ -127,7 +127,7 @@ public class App {
                                         Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,dlr,overground")),
                                         List.of("modes"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Disruptions", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String modes = request.arguments().get("modes").toString();
@@ -151,7 +151,7 @@ public class App {
                                         Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria,circle,dlr")),
                                         List.of("lines"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Line Status", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String lines = request.arguments().get("lines").toString();
@@ -175,7 +175,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Bike Points", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -200,7 +200,7 @@ public class App {
                                                 "to",   Map.of("type", "string", "description", "Destination: NaPTAN ID, postcode, or lat,lon")),
                                         List.of("from", "to"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Journey Planner", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String from = request.arguments().get("from").toString();
@@ -225,7 +225,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("List Transport Modes", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -248,7 +248,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Air Quality", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -271,7 +271,7 @@ public class App {
                                         Map.of(),
                                         List.of(),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Road Disruptions", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             try {
@@ -296,7 +296,7 @@ public class App {
                                                 "direction", Map.of("type", "string", "description", "Direction of travel: inbound or outbound")),
                                         List.of("lineId", "direction"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Line Routes", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String lineId = request.arguments().get("lineId").toString();
@@ -321,7 +321,7 @@ public class App {
                                         Map.of("naptan", Map.of("type", "string", "description", "NaPTAN station ID, e.g. 940GZZLUOXC")),
                                         List.of("naptan"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Station Crowding", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String naptan = request.arguments().get("naptan").toString();
@@ -347,7 +347,7 @@ public class App {
                                                 "toStopId", Map.of("type", "string", "description", "Destination NaPTAN stop ID, e.g. 940GZZLUBND")),
                                         List.of("fromStopId", "toStopId"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations(null, true, null, null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Fares", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String fromStopId = request.arguments().get("fromStopId").toString();

@@ -60,6 +60,46 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 
 ---
 
+## Working Use Case Examples
+
+These examples are verified by the project's contract tests (`StdioContractTest.java`), which spawn the server as a real subprocess over stdio transport — the same way Claude Desktop connects.
+
+### Example 1: Check tube line status
+
+**Prompt:** "Is the Central line running normally?"
+
+**Tool call:** `line_status` with `{"lines": "central"}`
+
+**Expected output:** The Central line's current status (e.g. "Central: Good Service" or "Central: Minor Delays — reason…"). Verified by `lineStatusWithoutKey()`.
+
+### Example 2: Search for a stop and get arrivals
+
+**Prompt:** "When is the next bus from Oxford Circus?"
+
+**Tool calls:**
+1. `stop_search` with `{"query": "oxford circus"}` → returns stop IDs including Oxford Circus
+2. `arrivals` with `{"stopId": "940GZZLUOXC"}` → returns live arrival predictions sorted by time
+
+Verified by `stopSearchWithoutKey()` and `arrivalsWithoutKey()`.
+
+### Example 3: Plan a journey
+
+**Prompt:** "How do I get from Pimlico to Tower Bridge?"
+
+**Tool call:** `journey` with `{"from": "51.4952,-0.1441", "to": "51.5179,-0.0816"}`
+
+**Expected output:** One or more journey options with duration and step-by-step legs (e.g. "Journey 1 (25 min): Walk to Pimlico (3 min), Take Victoria line to Green Park (5 min)…"). Verified by `journeyWithoutKey()`.
+
+### Example 4: Check air quality
+
+**Prompt:** "What's the air quality like in London today?"
+
+**Tool call:** `air_quality` with `{}`
+
+**Expected output:** The latest London air quality forecast data feed from TfL. Verified by `airQualityWithoutKey()`.
+
+---
+
 ## Submission Path
 
 **Desktop extension form**: http://clau.de/desktop-extention-submission
