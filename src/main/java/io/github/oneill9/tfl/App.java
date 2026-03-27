@@ -66,7 +66,7 @@ public class App {
         this.tflBase = tflBase;
 
         mcpServer = McpServer.sync(transportProvider)
-                .serverInfo("tfl-server", VERSION)
+                .serverInfo("TfL", VERSION)
                 .capabilities(McpSchema.ServerCapabilities.builder()
                         .tools(true)
                         .build())

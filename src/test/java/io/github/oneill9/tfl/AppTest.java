@@ -183,7 +183,7 @@ class AppTest {
     @Test
     void serverReportsCorrectInfo() {
         var info = client.getServerInfo();
-        assertEquals("tfl-server", info.name());
+        assertEquals("TfL", info.name());
         var props = new java.util.Properties();
         try (var in = getClass().getResourceAsStream("/version.properties")) { props.load(in); } catch (Exception e) { throw new RuntimeException(e); }
         assertEquals(props.getProperty("version"), info.version());

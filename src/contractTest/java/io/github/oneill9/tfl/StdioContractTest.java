@@ -76,7 +76,7 @@ class StdioContractTest {
     @Test
     void serverReportsCorrectInfo() {
         var info = client.getServerInfo();
-        assertEquals("tfl-server", info.name());
+        assertEquals("TfL", info.name());
     }
 
     @Test
