@@ -27,6 +27,13 @@
           "isSecret": true
         }
       ]
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/oneill9/mcp-server-tfl/releases/download/v1.2.0/tfl.mcpb",
+      "transport": {
+        "type": "stdio"
+      }
     }
   ]
 }
