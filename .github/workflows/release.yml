@@ -63,7 +63,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   github-release:
-    needs: test
+    needs: [test, publish-docker]
     runs-on: ubuntu-latest
     # Only create a release for tags that start with v
     if: startsWith(github.ref, 'refs/tags/v')
