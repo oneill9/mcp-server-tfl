@@ -12,8 +12,9 @@ echo "==> Compiling TypeScript..."
 npm run build
 
 echo "==> Packing MCPB extension..."
+rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
-mcpb pack "$NODE_DIR" "$OUTPUT_DIR"
+mcpb pack "$NODE_DIR" "$OUTPUT_DIR/tfl.mcpb"
 
 echo ""
-echo "Done! MCPB bundle written to $OUTPUT_DIR/"
+echo "Done! MCPB bundle written to $OUTPUT_DIR/tfl.mcpb"
