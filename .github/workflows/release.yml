@@ -34,7 +34,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: node/package-lock.json
-      - run: cd node && npm ci && npm test
+      - run: cd node && npm ci && npm run build && npm test
 
   build-mcpb:
     needs: test-node
