@@ -31,6 +31,10 @@ Key TfL API areas (each maps to one or more MCP tools):
 
 ## Architecture
 
+The server has two feature-equivalent implementations: **Java** (Docker/ZIP, also supports HTTP/SSE) and **Node.js** (MCPB Desktop extension). Both expose the same 12 tools with identical response formatting.
+
+### Java
+
 - **Language:** Java 25
 - **Build:** Gradle 9.4.1 (Kotlin DSL)
 - **HTTP server:** Jetty 12 (EE10)
@@ -39,13 +43,33 @@ Key TfL API areas (each maps to one or more MCP tools):
 - **Main class:** `com.aon.tfl.App`
 - **Tests:** JUnit 5 integration tests — spin up the full server on a random port and connect via an MCP client
 
+### Node.js
+
+- **Language:** TypeScript (compiled to ESM)
+- **Runtime:** Node.js 22
+- **Build:** `tsc` via npm scripts
+- **MCP transport:** stdio via `@modelcontextprotocol/sdk` `StdioServerTransport`
+- **Entry point:** `node/src/index.ts` → `node/dist/index.js`
+- **Tests:** Vitest — unit tests use a mock HTTP server; contract tests hit the live TfL API
+- **MCPB manifest:** `node/manifest.json`
+
 ## Development Workflow
 
 We use **red-green TDD**:
+
+### Java
 1. Write a failing test in `AppTest.java` that covers the new tool
 2. Implement the tool in `App.java` (minimal code to pass the test)
 3. Refactor if needed
 4. Commit and push
+
+### Node.js
+1. Write a failing test in `node/test/server.test.ts` that covers the new tool
+2. Implement the tool in `node/src/index.ts` (minimal code to pass the test)
+3. Refactor if needed
+4. Commit and push
+
+When adding a new tool, implement it in **both** Java and Node.js to keep the implementations in sync.
 
 ### Java Version Note
 
@@ -53,12 +77,21 @@ The project targets **Java 25** (`build.gradle.kts` toolchain). If the local env
 
 ## Key Constraints
 
-- Keep `App.java` simple; extract service/helper classes only when complexity justifies it
-- Integration tests must pass: `./gradlew test`
+### Both implementations
 - The TfL API key is optional for tests — stub or use a real key via `TFL_APP_KEY` env var
 - All HTTP calls to TfL should respect the `TFL_APP_KEY` env var if set
-- Tests use WireMock (`wiremock-jetty12:3.13.2`) to stub TfL API — no real network calls needed
 - **Never commit API keys or secrets** — `TFL_APP_KEY` and `TFL_APP_ID` must only be supplied via environment variables or CI secrets, never hardcoded in source files, test fixtures, or committed configuration
+- New tools must be added to both Java and Node.js implementations with identical response formatting
+
+### Java
+- Keep `App.java` simple; extract service/helper classes only when complexity justifies it
+- Integration tests must pass: `./gradlew test`
+- Tests use WireMock (`wiremock-jetty12:3.13.2`) to stub TfL API — no real network calls needed
+
+### Node.js
+- Keep `src/index.ts` as the single source file; extract modules only when complexity justifies it
+- Unit tests must pass: `cd node && npm test`
+- Tests use a mock HTTP server — no real network calls needed
 
 ## Working Branch
 

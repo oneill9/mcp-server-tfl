@@ -12,7 +12,16 @@ Providing the `TFL_APP_KEY` environment variable significantly raises the rate l
 4. Retrieve the **Primary Key** generated for your application.
 
 ### Passing the Key to the MCP Server
-If you're using Docker within the Claude Desktop `claude_desktop_config.json`, simply pass it as an environment variable via `args`:
+
+For **Node.js MCPB** or **Java direct**, pass it via the `env` dictionary in your `claude_desktop_config.json`:
+
+```json
+"env": {
+  "TFL_APP_KEY": "your_primary_key"
+}
+```
+
+For **Docker**, pass it as a `-e` flag in `args`:
 
 ```json
 "args": [
@@ -23,12 +32,4 @@ If you're using Docker within the Claude Desktop `claude_desktop_config.json`, s
   "TFL_APP_KEY=your_primary_key",
   "ghcr.io/oneill9/mcp-server-tfl:latest"
 ]
-```
-
-Or pass it as part of the `env` dictionary if you are directly executing the java process:
-
-```json
-"env": {
-  "TFL_APP_KEY": "your_primary_key"
-}
 ```

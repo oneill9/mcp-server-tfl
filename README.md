@@ -11,14 +11,11 @@
 
 A MCP server that exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) as tools, allowing AI assistants like Claude to query live London transport data.
 
-Built with Java 25, Gradle 9.4.1, Jetty 12, and the [MCP Java SDK](https://github.com/modelcontextprotocol/java-sdk) v1.1.0 (SSE transport).
+Available in two implementations:
+- **Node.js (MCPB)** — lightweight Desktop extension, recommended for Claude Desktop
+- **Java** — Docker image or standalone ZIP, also supports HTTP/SSE transport
 
 ## Getting Started
-
-Run using Docker
-
-**Prerequisites:**
-- [Docker](https://docs.docker.com/get-docker/) (recommended), **or** Java 25 + Gradle 9
 
 **Step 1 — Add to Claude Desktop**
 
@@ -27,7 +24,22 @@ Open your Claude Desktop config file:
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-Add the server under `mcpServers`:
+**Option A: Node.js MCPB (recommended)**
+
+Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/mcp-server-tfl/releases) and install it in Claude Desktop, or add manually:
+
+```json
+{
+  "mcpServers": {
+    "tfl": {
+      "command": "npx",
+      "args": ["-y", "@oneill9/mcp-server-tfl"]
+    }
+  }
+}
+```
+
+**Option B: Docker**
 
 ```json
 {
@@ -45,14 +57,14 @@ Add the server under `mcpServers`:
 The server works without a key at low rate limits. For heavier use, [register a free key](https://api-portal.tfl.gov.uk/) and pass it via the `TFL_APP_KEY` environment variable:
 
 ```json
-"args": ["run", "-i", "--rm", "-e", "TFL_APP_KEY=your_key_here", "ghcr.io/oneill9/mcp-server-tfl:latest"]
+"env": { "TFL_APP_KEY": "your_key_here" }
 ```
 
 **Step 3 — Restart Claude Desktop and start asking questions**
 
 Example: *"Is the Central line running normally?"*, *"When is the next bus from Oxford Circus?"*
 
-For full setup details and the Java-direct option, see [docs/installation.md](docs/installation.md).
+For full setup details (Java direct, Docker options), see [docs/installation.md](docs/installation.md).
 
 ## Tools
 
@@ -88,15 +100,35 @@ Requests work without an API key but are rate-limited. An app key raises the lim
 
 ## Running
 
-The server uses **stdio transport** — it reads JSON-RPC from stdin and writes responses to stdout, which is the standard MCP transport for Claude Desktop.
+Both implementations use **stdio transport** — JSON-RPC over stdin/stdout, the standard MCP transport for Claude Desktop.
 
 ```sh
-TFL_APP_KEY=your_key_here ./gradlew run
+# Node.js
+cd node && npm run build && node dist/index.js
+
+# Java
+./gradlew run
 ```
 
 For use with Claude Desktop, see [docs/installation.md](docs/installation.md).
 
 ## Testing
+
+### Node.js
+
+Unit tests use a mock HTTP server — no network access or API key required:
+
+```sh
+cd node && npm test
+```
+
+Contract tests call the live TfL API:
+
+```sh
+cd node && TFL_APP_KEY=your_key_here npm run contractTest
+```
+
+### Java
 
 Unit tests use WireMock to stub the TfL API — no network access or API key required:
 
@@ -104,7 +136,7 @@ Unit tests use WireMock to stub the TfL API — no network access or API key req
 ./gradlew test
 ```
 
-Contract tests spin up the server as a real subprocess (the same way Claude Desktop does) and call the live TfL API:
+Contract tests spin up the server as a real subprocess and call the live TfL API:
 
 ```sh
 TFL_APP_KEY=your_key_here ./gradlew contractTest

@@ -1,6 +1,8 @@
 # Installation
 
-There are two primary ways to run the TfL MCP server: using **Docker**, or running the **latest Java build** locally.
+There are three ways to run the TfL MCP server: **Node.js MCPB** (recommended), **Docker**, or **Java direct**.
+
+Both the Node.js and Java implementations expose the same 12 tools with identical behaviour — choose whichever fits your environment.
 
 ## Claude Desktop Configuration
 
@@ -9,11 +11,31 @@ Open your Claude Desktop configuration file. Usually, this is located at:
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
-Add the following to your `mcpServers` object, choosing either the Docker approach or the Java approach below:
+Add the following to your `mcpServers` object, choosing one of the options below:
 
-### Option 1: Docker (Recommended)
+### Option 1: Node.js MCPB (Recommended)
 
-You don't need Java installed. Docker will download and run the container securely.
+The lightest option — no Docker or Java required. Just Node.js 20+.
+
+Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/mcp-server-tfl/releases) and install it in Claude Desktop, or add manually:
+
+```json
+{
+  "mcpServers": {
+    "tfl": {
+      "command": "npx",
+      "args": ["-y", "@oneill9/mcp-server-tfl"],
+      "env": {
+        "TFL_APP_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Option 2: Docker
+
+You don't need Java or Node.js installed. Docker will download and run the container securely.
 
 ```json
 {
@@ -33,7 +55,7 @@ You don't need Java installed. Docker will download and run the container secure
 }
 ```
 
-### Option 2: Java Direct
+### Option 3: Java Direct
 
 If you prefer to run it using the built distribution ZIP attached to GitHub Releases:
 

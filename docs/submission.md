@@ -24,7 +24,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 | **Transport protocol** | stdio (Desktop extension / MCPB) |
 | **Auth type** | None (no OAuth). Optional TfL API key via `TFL_APP_KEY` environment variable. |
 | **Read / Write** | Read-only — all 12 tools are read-only queries against the TfL API. No write operations. |
-| **Package** | `ghcr.io/oneill9/mcp-server-tfl:latest` (OCI / Docker) |
+| **Packages** | `tfl.mcpb` (Node.js MCPB — primary), `ghcr.io/oneill9/mcp-server-tfl:latest` (OCI / Docker) |
 
 ---
 
@@ -104,4 +104,4 @@ Verified by `stopSearchWithoutKey()` and `arrivalsWithoutKey()`.
 
 **Desktop extension form**: http://clau.de/desktop-extention-submission
 
-Rationale: the server is distributed as a Docker image invoked via stdio transport — the standard Desktop extension (MCPB) pattern. No OAuth or server-side infrastructure is needed.
+Rationale: the server is distributed as both a Node.js MCPB bundle (primary) and a Docker image, both invoked via stdio transport — the standard Desktop extension pattern. No OAuth or server-side infrastructure is needed.
