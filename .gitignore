@@ -4,6 +4,7 @@ build/
 *.iml
 .DS_Store
 .mcpregistry_*
+*.mcpb
 
 # Node
 node/node_modules/
