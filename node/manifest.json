@@ -4,13 +4,13 @@
   "display_name": "Transport for London",
   "version": "1.2.0",
   "description": "Real-time London transport data via the TfL Unified API",
-  "author": "oneill9",
+  "author": { "name": "oneill9" },
   "server": {
     "type": "node",
-    "entry_point": "server/dist/index.js",
+    "entry_point": "dist/index.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/server/dist/index.js"],
+      "args": ["${__dirname}/dist/index.js"],
       "env": {
         "TFL_APP_KEY": "${user_config.tfl_app_key}"
       }
@@ -39,6 +39,7 @@
     { "name": "crowding", "description": "Get station crowding" },
     { "name": "fares", "description": "Get fare information" }
   ],
+  "icon": "icon.svg",
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"]
   }
