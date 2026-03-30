@@ -39,7 +39,7 @@
     { "name": "crowding", "description": "Get station crowding" },
     { "name": "fares", "description": "Get fare information" }
   ],
-  "icon": "icon.svg",
+  "icon": "icon.png",
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"]
   }
