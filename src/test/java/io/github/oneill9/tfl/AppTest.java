@@ -141,6 +141,46 @@ class AppTest {
         wireMock.stubFor(get(urlPathMatching("/Line/Mode/unknown-mode/Disruption"))
                 .willReturn(aResponse().withStatus(400)));
 
+        wireMock.stubFor(get(urlPathMatching("/BikePoint"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {
+                                    "id":"BikePoints_1","commonName":"River Street, Clerkenwell",
+                                    "lat":51.5292,"lon":-0.1097,
+                                    "additionalProperties":[
+                                      {"key":"NbBikes","value":"15"},
+                                      {"key":"NbEmptyDocks","value":"8"}
+                                    ]
+                                  },
+                                  {
+                                    "id":"BikePoints_2","commonName":"Phillimore Gardens, Kensington",
+                                    "lat":51.4991,"lon":-0.1984,
+                                    "additionalProperties":[
+                                      {"key":"NbBikes","value":"3"},
+                                      {"key":"NbEmptyDocks","value":"14"}
+                                    ]
+                                  }
+                                ]
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/BikePoint/Search/clerkenwell"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {
+                                    "id":"BikePoints_1","commonName":"River Street, Clerkenwell",
+                                    "lat":51.5292,"lon":-0.1097,
+                                    "additionalProperties":[
+                                      {"key":"NbBikes","value":"15"},
+                                      {"key":"NbEmptyDocks","value":"8"}
+                                    ]
+                                  }
+                                ]
+                                """)));
+
         wireMock.stubFor(get(urlPathMatching("/Journey/JourneyResults/1000123/to/1000456"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -388,6 +428,33 @@ class AppTest {
         assertTrue(text.contains("2.80") || text.contains("Peak"), "Response should include fare info");
     }
 
+    // --- bike_points ---
+
+    @Test
+    void listToolsContainsBikePoints() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("bike_points"), "Should contain bike_points tool");
+    }
+
+    @Test
+    void bikePointsReturnsAllStations() {
+        var result = client.callTool(new McpSchema.CallToolRequest("bike_points", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("River Street"), "Response should mention station name");
+        assertTrue(text.contains("bikes"), "Response should mention available bikes");
+        assertTrue(text.contains("docks"), "Response should mention empty docks");
+    }
+
+    @Test
+    void bikePointsSearchFiltersResults() {
+        var result = client.callTool(new McpSchema.CallToolRequest("bike_points", Map.of("query", "clerkenwell")));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Clerkenwell"), "Response should match search query");
+    }
+
     // --- tool annotations ---
 
     @Test
@@ -395,7 +462,7 @@ class AppTest {
         var result = client.listTools();
         var expectedTools = java.util.Set.of(
                 "line_status", "arrivals", "stop_search", "disruptions",
-                "journey", "list_modes", "line_routes", "crowding", "fares");
+                "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points");
         for (McpSchema.Tool tool : result.tools()) {
             if (!expectedTools.contains(tool.name())) continue;
             assertNotNull(tool.annotations(), tool.name() + " should have annotations");
