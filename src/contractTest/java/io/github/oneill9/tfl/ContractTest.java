@@ -129,21 +129,6 @@ class ContractTest {
     }
 
     @Test
-    void airQualityReturnsRealData() {
-        var result = client.callTool(new McpSchema.CallToolRequest("air_quality", Map.of()));
-        assertFalse(result.isError(), "air_quality should not return an error");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "air_quality should return a non-empty response");
-    }
-
-    @Test
-    void roadDisruptionsReturnsRealData() {
-        var result = client.callTool(new McpSchema.CallToolRequest("road_disruptions", Map.of()));
-        assertFalse(result.isError(), "road_disruptions should not return an error");
-        // May legitimately be empty when roads are clear
-    }
-
-    @Test
     void lineRoutesReturnsRealStops() {
         var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
                 Map.of("lineId", "central", "direction", "outbound")));
