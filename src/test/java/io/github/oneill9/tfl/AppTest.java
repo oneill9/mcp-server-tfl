@@ -141,6 +141,48 @@ class AppTest {
         wireMock.stubFor(get(urlPathMatching("/Line/Mode/unknown-mode/Disruption"))
                 .willReturn(aResponse().withStatus(400)));
 
+        wireMock.stubFor(get(urlPathMatching("/AirQuality"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "updatePeriod": "hourly",
+                                  "currentForecast": [
+                                    {
+                                      "forecastType": "Current",
+                                      "forecastBand": "Low",
+                                      "forecastSummary": "Low air pollution forecast valid from Friday 4 April to end of Monday 7 April GMT"
+                                    },
+                                    {
+                                      "forecastType": "Future",
+                                      "forecastBand": "Low",
+                                      "forecastSummary": "Low air pollution forecast valid from Tuesday 8 April GMT"
+                                    }
+                                  ]
+                                }
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/Road/all/Disruption"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {
+                                    "category": "RoadClosure",
+                                    "subCategory": "Roadworks",
+                                    "comments": "Gas main replacement works on Euston Road",
+                                    "severity": "Serious"
+                                  },
+                                  {
+                                    "category": "Event",
+                                    "subCategory": "Filming",
+                                    "comments": "Film shoot near Trafalgar Square",
+                                    "severity": "Minimal"
+                                  }
+                                ]
+                                """)));
+
+
         wireMock.stubFor(get(urlPathMatching("/BikePoint"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -455,6 +497,42 @@ class AppTest {
         assertTrue(text.contains("Clerkenwell"), "Response should match search query");
     }
 
+    // --- air_quality ---
+
+    @Test
+    void listToolsContainsAirQuality() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("air_quality"), "Should contain air_quality tool");
+    }
+
+    @Test
+    void airQualityReturnsForecast() {
+        var result = client.callTool(new McpSchema.CallToolRequest("air_quality", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("Current"), "Response should include current forecast type");
+        assertTrue(text.contains("Low"), "Response should include pollution band");
+    }
+
+    // --- road_disruptions ---
+
+    @Test
+    void listToolsContainsRoadDisruptions() {
+        var result = client.listTools();
+        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
+        assertTrue(names.contains("road_disruptions"), "Should contain road_disruptions tool");
+    }
+
+    @Test
+    void roadDisruptionsReturnsActiveDisruptions() {
+        var result = client.callTool(new McpSchema.CallToolRequest("road_disruptions", Map.of()));
+        assertFalse(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("RoadClosure") || text.contains("Roadworks"), "Response should include disruption category");
+        assertTrue(text.contains("Euston"), "Response should include disruption comments");
+    }
+
     // --- tool annotations ---
 
     @Test
@@ -462,7 +540,8 @@ class AppTest {
         var result = client.listTools();
         var expectedTools = java.util.Set.of(
                 "line_status", "arrivals", "stop_search", "disruptions",
-                "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points");
+                "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points",
+                "air_quality", "road_disruptions");
         for (McpSchema.Tool tool : result.tools()) {
             if (!expectedTools.contains(tool.name())) continue;
             assertNotNull(tool.annotations(), tool.name() + " should have annotations");
