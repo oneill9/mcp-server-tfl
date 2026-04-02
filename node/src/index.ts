@@ -84,8 +84,8 @@ server.tool(
 // --- disruptions ---
 server.tool(
   "disruptions",
-  "Get current disruptions for one or more TfL transport modes. Call the list_modes tool to see all valid modes.",
-  { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,dlr,overground") },
+  "Get current disruptions for one or more TfL public transport modes, e.g. tube, bus, overground, elizabeth-line, dlr.",
+  { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line") },
   { ...ANNOTATIONS, title: "Disruptions" },
   async ({ modes }) => {
     try {
@@ -101,8 +101,8 @@ server.tool(
 // --- line_status ---
 server.tool(
   "line_status",
-  "Get the current operational status and delays for one or more TfL lines.",
-  { lines: z.string().describe("Comma-separated line IDs, e.g. central,victoria,circle,dlr") },
+  "Get the current operational status and delays for one or more TfL tube, bus, or rail lines.",
+  { lines: z.string().describe("Comma-separated line IDs, e.g. central,victoria,jubilee,elizabeth-line,overground") },
   { ...ANNOTATIONS, title: "Line Status" },
   async ({ lines }) => {
     try {
@@ -118,31 +118,6 @@ server.tool(
       return { content: [{ type: "text", text: result.join("\n") }] };
     } catch (e: any) {
       return { content: [{ type: "text", text: `Error fetching line status: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- bike_points ---
-server.tool(
-  "bike_points",
-  "List all Santander Cycles docking stations across London with currently available bikes and empty docks.",
-  {},
-  { ...ANNOTATIONS, title: "Bike Points" },
-  async () => {
-    try {
-      const data: any[] = await httpGet("/BikePoint");
-      const lines = data.map((point) => {
-        let bikes = "";
-        let emptyDocks = "";
-        for (const prop of point.additionalProperties ?? []) {
-          if (prop.key === "NbBikes") bikes = prop.value;
-          else if (prop.key === "NbEmptyDocks") emptyDocks = prop.value;
-        }
-        return `${point.id} — ${point.commonName}: ${bikes} bikes, ${emptyDocks} empty docks`;
-      });
-      return { content: [{ type: "text", text: lines.join("\n") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching bike points: ${e.message}` }], isError: true };
     }
   }
 );
@@ -190,39 +165,6 @@ server.tool(
       return { content: [{ type: "text", text: modes.join(", ") }] };
     } catch (e: any) {
       return { content: [{ type: "text", text: `Error fetching modes: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- air_quality ---
-server.tool(
-  "air_quality",
-  "Get the latest London air quality data feed.",
-  {},
-  { ...ANNOTATIONS, title: "Air Quality" },
-  async () => {
-    try {
-      const data = await httpGet("/AirQuality");
-      return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching air quality: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- road_disruptions ---
-server.tool(
-  "road_disruptions",
-  "Get a list of disrupted streets and A-roads in London.",
-  {},
-  { ...ANNOTATIONS, title: "Road Disruptions" },
-  async () => {
-    try {
-      const data: any[] = await httpGet("/Road/all/Disruption");
-      const lines = data.map((d) => `${d.location ?? "Unknown Location"}: ${d.comments ?? ""}`);
-      return { content: [{ type: "text", text: lines.join("\n") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching road disruptions: ${e.message}` }], isError: true };
     }
   }
 );

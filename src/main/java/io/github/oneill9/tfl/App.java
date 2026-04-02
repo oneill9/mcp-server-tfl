@@ -121,10 +121,10 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("disruptions")
-                                .description("Get current disruptions for one or more TfL transport modes. Call the list_modes tool to see all valid modes.")
+                                .description("Get current disruptions for one or more TfL public transport modes, e.g. tube, bus, overground, elizabeth-line, dlr.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,dlr,overground")),
+                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line")),
                                         List.of("modes"),
                                         null, null, null))
                                 .annotations(new McpSchema.ToolAnnotations("Disruptions", true, false, true, true, null))
@@ -145,10 +145,10 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("line_status")
-                                .description("Get the current operational status and delays for one or more TfL lines.")
+                                .description("Get the current operational status and delays for one or more TfL tube, bus, or rail lines.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria,circle,dlr")),
+                                        Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria,jubilee,elizabeth-line,overground")),
                                         List.of("lines"),
                                         null, null, null))
                                 .annotations(new McpSchema.ToolAnnotations("Line Status", true, false, true, true, null))
@@ -162,29 +162,6 @@ public class App {
                             } catch (Exception e) {
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent("Error fetching line status: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("bike_points")
-                                .description("List all Santander Cycles docking stations across London with currently available bikes and empty docks.")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of(),
-                                        List.of(),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Bike Points", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchBikePoints())
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching bike points: " + e.getMessage())
                                         .isError(true)
                                         .build();
                             }
@@ -235,52 +212,6 @@ public class App {
                             } catch (Exception e) {
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent("Error fetching modes: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("air_quality")
-                                .description("Get the latest London air quality data feed.")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of(),
-                                        List.of(),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Air Quality", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchAirQuality())
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching air quality: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("road_disruptions")
-                                .description("Get a list of disrupted streets and A-roads in London.")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of(),
-                                        List.of(),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Road Disruptions", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchRoadDisruptions())
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching road disruptions: " + e.getMessage())
                                         .isError(true)
                                         .build();
                             }
@@ -441,21 +372,6 @@ public class App {
         return String.join(", ", modes);
     }
 
-    private String fetchAirQuality() throws Exception {
-        return httpGet("/AirQuality").toPrettyString();
-    }
-
-    private String fetchRoadDisruptions() throws Exception {
-        JsonNode root = httpGet("/Road/all/Disruption");
-        var sb = new StringBuilder();
-        for (JsonNode disruption : root) {
-            String location = disruption.path("location").asText("Unknown Location");
-            String comments = disruption.path("comments").asText("");
-            sb.append(location).append(": ").append(comments).append("\n");
-        }
-        return sb.toString().trim();
-    }
-
     private String fetchDisruptions(String modes) throws Exception {
         JsonNode root = httpGet("/Line/Mode/" + encodeSegments(modes) + "/Disruption");
         var sb = new StringBuilder();
@@ -514,25 +430,6 @@ public class App {
                 int legDuration = leg.path("duration").asInt();
                 sb.append("  - ").append(summary).append(" (").append(legDuration).append(" min)\n");
             }
-        }
-        return sb.toString().trim();
-    }
-
-    private String fetchBikePoints() throws Exception {
-        JsonNode root = httpGet("/BikePoint");
-        var sb = new StringBuilder();
-        for (JsonNode point : root) {
-            String id = point.path("id").asText();
-            String name = point.path("commonName").asText();
-            String bikes = "";
-            String emptyDocks = "";
-            for (JsonNode prop : point.path("additionalProperties")) {
-                String key = prop.path("key").asText();
-                if ("NbBikes".equals(key)) bikes = prop.path("value").asText();
-                else if ("NbEmptyDocks".equals(key)) emptyDocks = prop.path("value").asText();
-            }
-            sb.append(id).append(" — ").append(name)
-              .append(": ").append(bikes).append(" bikes, ").append(emptyDocks).append(" empty docks\n");
         }
         return sb.toString().trim();
     }
