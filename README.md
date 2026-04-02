@@ -77,8 +77,6 @@ For full setup details (Java direct, Docker options), see [docs/installation.md]
 | `journey` | Plan a journey between two points | `GET /Journey/JourneyResults/{from}/to/{to}` |
 | `bike_points` | List Santander Cycles docking stations | `GET /BikePoint` |
 | `list_modes` | Get a list of all valid TfL transport modes | `GET /Line/Meta/Modes` |
-| `air_quality` | Get the latest London air quality data feed | `GET /AirQuality` |
-| `road_disruptions` | Get a list of disrupted streets and A-roads | `GET /Road/all/Street/Disruption` |
 | `line_routes` | Ordered sequence of stops along a line | `GET /Line/{id}/Route/Sequence/{direction}` |
 | `crowding` | Live station crowding level | `GET /Crowding/{naptan}/Live` |
 | `fares` | Fare information between two stops | `GET /StopPoint/{id}/FareTo/{targetId}` |
