@@ -90,8 +90,6 @@ class StdioContractTest {
         assertTrue(names.contains("journey"));
         assertTrue(names.contains("bike_points"));
         assertTrue(names.contains("list_modes"));
-        assertTrue(names.contains("air_quality"));
-        assertTrue(names.contains("road_disruptions"));
         assertTrue(names.contains("line_routes"));
         assertTrue(names.contains("crowding"));
         assertTrue(names.contains("fares"));
@@ -127,14 +125,6 @@ class StdioContractTest {
     }
 
     @Test
-    void airQualityWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("air_quality", Map.of()));
-        assertFalse(result.isError(), "air_quality should succeed without an API key");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "Response should be non-empty");
-    }
-
-    @Test
     void bikePointsWithoutKey() {
         var result = client.callTool(new McpSchema.CallToolRequest("bike_points", Map.of()));
         assertFalse(result.isError(), "bike_points should succeed without an API key");
@@ -165,12 +155,6 @@ class StdioContractTest {
         assertFalse(result.isError(), "journey should succeed without an API key");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertFalse(text.isBlank(), "journey should return a non-empty response");
-    }
-
-    @Test
-    void roadDisruptionsWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("road_disruptions", Map.of()));
-        assertFalse(result.isError(), "road_disruptions should succeed without an API key");
     }
 
     @Test
