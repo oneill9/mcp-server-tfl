@@ -89,6 +89,40 @@ const STUBS: Record<string, { status: number; body: any }> = {
       ],
     },
   },
+  "/BikePoint": {
+    status: 200,
+    body: [
+      {
+        id: "BikePoints_1", commonName: "River Street, Clerkenwell",
+        lat: 51.5292, lon: -0.1097,
+        additionalProperties: [
+          { key: "NbBikes", value: "15" },
+          { key: "NbEmptyDocks", value: "8" },
+        ],
+      },
+      {
+        id: "BikePoints_2", commonName: "Phillimore Gardens, Kensington",
+        lat: 51.4991, lon: -0.1984,
+        additionalProperties: [
+          { key: "NbBikes", value: "3" },
+          { key: "NbEmptyDocks", value: "14" },
+        ],
+      },
+    ],
+  },
+  "/BikePoint/Search/clerkenwell": {
+    status: 200,
+    body: [
+      {
+        id: "BikePoints_1", commonName: "River Street, Clerkenwell",
+        lat: 51.5292, lon: -0.1097,
+        additionalProperties: [
+          { key: "NbBikes", value: "15" },
+          { key: "NbEmptyDocks", value: "8" },
+        ],
+      },
+    ],
+  },
   // error stubs
   "/Line/bad-line/Status": { status: 500, body: "" },
   "/StopPoint/notfound/Arrivals": { status: 404, body: "" },
@@ -145,12 +179,12 @@ afterAll(async () => {
 // --- tool list ---
 
 describe("tool listing", () => {
-  it("lists all 9 tools", async () => {
+  it("lists all 10 tools", async () => {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name);
     for (const expected of [
       "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "list_modes", "line_routes", "crowding", "fares",
+      "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points",
     ]) {
       expect(names).toContain(expected);
     }
@@ -164,7 +198,7 @@ describe("tool annotations", () => {
     const result = await client.listTools();
     const expected = new Set([
       "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "list_modes", "line_routes", "crowding", "fares",
+      "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points",
     ]);
     for (const tool of result.tools) {
       if (!expected.has(tool.name)) continue;
@@ -290,6 +324,24 @@ describe("crowding", () => {
     const result = await client.callTool({ name: "crowding", arguments: { naptan: "940GZZLUOXC" } });
     const text = (result.content as any)[0].text;
     expect(text).toMatch(/0\.6863|69/);
+  });
+});
+
+// --- bike_points ---
+
+describe("bike_points", () => {
+  it("returns all stations when no query given", async () => {
+    const result = await client.callTool({ name: "bike_points", arguments: {} });
+    const text = (result.content as any)[0].text;
+    expect(text).toContain("River Street");
+    expect(text).toContain("bikes");
+    expect(text).toContain("docks");
+  });
+
+  it("filters results when query is provided", async () => {
+    const result = await client.callTool({ name: "bike_points", arguments: { query: "clerkenwell" } });
+    const text = (result.content as any)[0].text;
+    expect(text).toContain("Clerkenwell");
   });
 });
 

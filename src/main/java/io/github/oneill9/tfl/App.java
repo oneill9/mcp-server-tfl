@@ -294,6 +294,31 @@ public class App {
                                         .build();
                             }
                         })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("bike_points")
+                                .description("Get TfL Santander Cycles bike point locations with available bikes and empty docks. Optionally filter by name with a search query.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of("query", Map.of("type", "string", "description", "Optional name search, e.g. clerkenwell")),
+                                        List.of(),
+                                        null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Bike Points", true, false, true, true, null))
+                                .build(),
+                        (exchange, request) -> {
+                            Object queryArg = request.arguments().get("query");
+                            String query = queryArg != null ? queryArg.toString().trim() : "";
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchBikePoints(query))
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching bike points: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
                 .build();
     }
 
@@ -478,6 +503,28 @@ public class App {
                     sb.append("\n");
                 }
             }
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchBikePoints(String query) throws Exception {
+        String path = query.isBlank() ? "/BikePoint" : "/BikePoint/Search/" + encodePath(query);
+        JsonNode root = httpGet(path);
+        var sb = new StringBuilder();
+        for (JsonNode point : root) {
+            String id = point.path("id").asText();
+            String name = point.path("commonName").asText();
+            int bikes = 0;
+            int emptyDocks = 0;
+            for (JsonNode prop : point.path("additionalProperties")) {
+                String key = prop.path("key").asText();
+                String value = prop.path("value").asText("0");
+                if ("NbBikes".equals(key)) bikes = Integer.parseInt(value);
+                if ("NbEmptyDocks".equals(key)) emptyDocks = Integer.parseInt(value);
+            }
+            sb.append(name).append(" (").append(id).append("): ")
+              .append(bikes).append(" bikes available, ")
+              .append(emptyDocks).append(" empty docks\n");
         }
         return sb.toString().trim();
     }

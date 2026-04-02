@@ -252,6 +252,34 @@ server.tool(
   }
 );
 
+// --- bike_points ---
+server.tool(
+  "bike_points",
+  "Get TfL Santander Cycles bike point locations with available bikes and empty docks. Optionally filter by name with a search query.",
+  { query: z.string().optional().describe("Optional name search, e.g. clerkenwell") },
+  { ...ANNOTATIONS, title: "Bike Points" },
+  async ({ query }) => {
+    try {
+      const path = query?.trim() ? `/BikePoint/Search/${encodePath(query.trim())}` : "/BikePoint";
+      const data: any[] = await httpGet(path);
+      const lines = data.map((point) => {
+        const name = point.commonName ?? "";
+        const id = point.id ?? "";
+        let bikes = 0;
+        let emptyDocks = 0;
+        for (const prop of point.additionalProperties ?? []) {
+          if (prop.key === "NbBikes") bikes = parseInt(prop.value, 10);
+          if (prop.key === "NbEmptyDocks") emptyDocks = parseInt(prop.value, 10);
+        }
+        return `${name} (${id}): ${bikes} bikes available, ${emptyDocks} empty docks`;
+      });
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (e: any) {
+      return { content: [{ type: "text", text: `Error fetching bike points: ${e.message}` }], isError: true };
+    }
+  }
+);
+
 // --- start server ---
 async function main() {
   const transport = new StdioServerTransport();
