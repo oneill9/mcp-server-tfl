@@ -20,7 +20,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
         with:
-          gradle-home-cache-cleanup: true
+          cache-cleanup: always
 
       - run: ./gradlew build
 
