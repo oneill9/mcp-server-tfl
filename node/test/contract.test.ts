@@ -48,13 +48,13 @@ describe("connectivity", () => {
     expect(info?.name).toBe("TfL");
   });
 
-  it("server advertises all 12 tools", async () => {
+  it("server advertises all 10 tools", async () => {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name);
     for (const expected of [
       "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "bike_points", "list_modes", "air_quality",
-      "road_disruptions", "line_routes", "crowding", "fares",
+      "journey", "bike_points", "list_modes",
+      "line_routes", "crowding", "fares",
     ]) {
       expect(names).toContain(expected);
     }
@@ -86,13 +86,6 @@ describe("tools without API key", () => {
     expect(text.toLowerCase()).toContain("oxford");
   });
 
-  it("air_quality", async () => {
-    const result = await client.callTool({ name: "air_quality", arguments: {} });
-    expect(result.isError).toBeFalsy();
-    const text = (result.content as any)[0].text;
-    expect(text.length).toBeGreaterThan(0);
-  });
-
   it("bike_points", async () => {
     const result = await client.callTool({ name: "bike_points", arguments: {} });
     expect(result.isError).toBeFalsy();
@@ -117,11 +110,6 @@ describe("tools without API key", () => {
     const text = (result.content as any)[0].text;
     expect(text.length).toBeGreaterThan(0);
   }, 15000);
-
-  it("road_disruptions", async () => {
-    const result = await client.callTool({ name: "road_disruptions", arguments: {} });
-    expect(result.isError).toBeFalsy();
-  });
 
   it("line_routes", async () => {
     const result = await client.callTool({ name: "line_routes", arguments: { lineId: "central", direction: "outbound" } });
