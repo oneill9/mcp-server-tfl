@@ -252,51 +252,6 @@ server.tool(
   }
 );
 
-// --- air_quality ---
-server.tool(
-  "air_quality",
-  "Get the current air quality forecast for London, including pollution levels and health advice.",
-  {},
-  { ...ANNOTATIONS, title: "Air Quality" },
-  async () => {
-    try {
-      const data = await httpGet("/AirQuality");
-      const parts: string[] = [];
-      for (const forecast of data.currentForecast ?? []) {
-        const type = forecast.forecastType ?? "";
-        const band = forecast.forecastBand ?? "";
-        const summary = forecast.forecastSummary ?? "";
-        parts.push(`${type}: ${band} — ${summary}`);
-      }
-      return { content: [{ type: "text", text: parts.join("\n") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching air quality: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- road_disruptions ---
-server.tool(
-  "road_disruptions",
-  "Get current disruptions on TfL-managed roads. Optionally filter by road IDs (e.g. A1, A2). Returns all road disruptions if no IDs supplied.",
-  { ids: z.string().optional().describe("Comma-separated road IDs, e.g. A1,A2. Omit for all roads.") },
-  { ...ANNOTATIONS, title: "Road Disruptions" },
-  async ({ ids }) => {
-    try {
-      const segment = ids?.trim() ? encodeSegments(ids.trim()) : "all";
-      const data: any[] = await httpGet(`/Road/${segment}/Disruption`);
-      const lines = data.map((d) => {
-        const street = d.street ?? d.location ?? "";
-        const desc = d.comments ?? d.currentUpdate ?? d.description ?? "";
-        return `${street}: ${desc}`;
-      });
-      return { content: [{ type: "text", text: lines.join("\n") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching road disruptions: ${e.message}` }], isError: true };
-    }
-  }
-);
-
 // --- bike_points ---
 server.tool(
   "bike_points",
