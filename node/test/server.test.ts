@@ -44,24 +44,9 @@ const STUBS: Record<string, { status: number; body: any }> = {
       { lineId: "jubilee", description: "Good service" },
     ],
   },
-  "/BikePoint": {
-    status: 200,
-    body: [
-      { id: "BikePoints_1", commonName: "River Street, Clerkenwell", lat: 51.5292, lon: -0.1086, additionalProperties: [{ key: "NbBikes", value: "9" }, { key: "NbEmptyDocks", value: "9" }] },
-      { id: "BikePoints_2", commonName: "Phillimore Gardens, Kensington", lat: 51.4996, lon: -0.1975, additionalProperties: [{ key: "NbBikes", value: "0" }, { key: "NbEmptyDocks", value: "13" }] },
-    ],
-  },
   "/Line/Meta/Modes": {
     status: 200,
     body: [{ modeName: "tube", isTflService: true }, { modeName: "bus", isTflService: true }, { modeName: "dlr", isTflService: true }],
-  },
-  "/AirQuality": {
-    status: 200,
-    body: [{ forecastSummary: "Low pollution today" }],
-  },
-  "/Road/all/Disruption": {
-    status: 200,
-    body: [{ location: "A406 North Circular", comments: "Lane closed due to roadworks" }],
   },
   "/Line/central/Route/Sequence/outbound": {
     status: 200,
@@ -160,13 +145,12 @@ afterAll(async () => {
 // --- tool list ---
 
 describe("tool listing", () => {
-  it("lists all 12 tools", async () => {
+  it("lists all 9 tools", async () => {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name);
     for (const expected of [
       "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "bike_points", "list_modes", "air_quality",
-      "road_disruptions", "line_routes", "crowding", "fares",
+      "journey", "list_modes", "line_routes", "crowding", "fares",
     ]) {
       expect(names).toContain(expected);
     }
@@ -180,8 +164,7 @@ describe("tool annotations", () => {
     const result = await client.listTools();
     const expected = new Set([
       "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "bike_points", "list_modes", "air_quality",
-      "road_disruptions", "line_routes", "crowding", "fares",
+      "journey", "list_modes", "line_routes", "crowding", "fares",
     ]);
     for (const tool of result.tools) {
       if (!expected.has(tool.name)) continue;
@@ -276,17 +259,6 @@ describe("journey", () => {
   });
 });
 
-// --- bike_points ---
-
-describe("bike_points", () => {
-  it("returns docking stations", async () => {
-    const result = await client.callTool({ name: "bike_points", arguments: {} });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("Clerkenwell");
-    expect(text).toContain("9");
-  });
-});
-
 // --- list_modes ---
 
 describe("list_modes", () => {
@@ -296,27 +268,6 @@ describe("list_modes", () => {
     expect(text).toContain("tube");
     expect(text).toContain("bus");
     expect(text).toContain("dlr");
-  });
-});
-
-// --- air_quality ---
-
-describe("air_quality", () => {
-  it("returns feed", async () => {
-    const result = await client.callTool({ name: "air_quality", arguments: {} });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("Low pollution");
-  });
-});
-
-// --- road_disruptions ---
-
-describe("road_disruptions", () => {
-  it("returns disruptions", async () => {
-    const result = await client.callTool({ name: "road_disruptions", arguments: {} });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("A406");
-    expect(text).toContain("roadworks");
   });
 });
 
