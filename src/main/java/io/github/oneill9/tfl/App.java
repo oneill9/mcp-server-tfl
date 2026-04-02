@@ -319,6 +319,52 @@ public class App {
                                         .build();
                             }
                         })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("air_quality")
+                                .description("Get the current and forecast air quality index for London from TfL.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(),
+                                        List.of(),
+                                        null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Air Quality", true, false, true, true, null))
+                                .build(),
+                        (exchange, request) -> {
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchAirQuality())
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching air quality: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
+                .toolCall(
+                        McpSchema.Tool.builder()
+                                .name("road_disruptions")
+                                .description("Get current disruptions on TfL-managed roads in London, including road closures, roadworks, and events.")
+                                .inputSchema(new McpSchema.JsonSchema(
+                                        "object",
+                                        Map.of(),
+                                        List.of(),
+                                        null, null, null))
+                                .annotations(new McpSchema.ToolAnnotations("Road Disruptions", true, false, true, true, null))
+                                .build(),
+                        (exchange, request) -> {
+                            try {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent(fetchRoadDisruptions())
+                                        .build();
+                            } catch (Exception e) {
+                                return McpSchema.CallToolResult.builder()
+                                        .addTextContent("Error fetching road disruptions: " + e.getMessage())
+                                        .isError(true)
+                                        .build();
+                            }
+                        })
                 .build();
     }
 
@@ -525,6 +571,33 @@ public class App {
             sb.append(name).append(" (").append(id).append("): ")
               .append(bikes).append(" bikes available, ")
               .append(emptyDocks).append(" empty docks\n");
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchAirQuality() throws Exception {
+        JsonNode root = httpGet("/AirQuality");
+        var sb = new StringBuilder();
+        for (JsonNode forecast : root.path("currentForecast")) {
+            String type = forecast.path("forecastType").asText();
+            String band = forecast.path("forecastBand").asText();
+            String summary = forecast.path("forecastSummary").asText();
+            sb.append(type).append(": ").append(band).append(" — ").append(summary).append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    private String fetchRoadDisruptions() throws Exception {
+        JsonNode root = httpGet("/Road/all/Disruption");
+        var sb = new StringBuilder();
+        for (JsonNode disruption : root) {
+            String category = disruption.path("category").asText();
+            String subCategory = disruption.path("subCategory").asText();
+            String severity = disruption.path("severity").asText();
+            String comments = disruption.path("comments").asText();
+            sb.append(category);
+            if (!subCategory.isBlank()) sb.append("/").append(subCategory);
+            sb.append(" (").append(severity).append("): ").append(comments).append("\n");
         }
         return sb.toString().trim();
     }
