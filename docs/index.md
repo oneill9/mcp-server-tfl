@@ -29,11 +29,6 @@ This MCP server exposes the [TfL (Transport for London) Unified API](https://api
 - Check live Santander Cycles docking station availability across London
 - See bikes available and empty docks at each station
 
-### Roads & Environment
-
-- View current road disruptions, closures, and roadworks on London streets and A-roads
-- Check the latest London air quality forecast and pollution levels
-
 For the full list of tools and parameters, see the [Tools Reference](tools.md).
 
 To learn how to install and connect this server to your AI assistant, check out the [Installation Guide](installation.md).

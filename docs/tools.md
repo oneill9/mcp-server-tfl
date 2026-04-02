@@ -1,6 +1,6 @@
 # Tools Reference
 
-The TfL MCP Server exposes 12 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
+The TfL MCP Server exposes 10 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
 
 ---
 
@@ -134,38 +134,6 @@ Get a list of all valid TfL transport modes. Useful for building queries to `dis
 **Example response:**
 ```
 tube, bus, dlr, overground, elizabeth-line, tflrail, national-rail, river-bus, cable-car, tram, cycle-hire
-```
-
----
-
-## `air_quality` — Air Quality
-
-Get the latest London air quality data feed from TfL.
-
-**Parameters:** None
-
-**Example query:** *"What is the air quality like in London today?"*
-
-**Example response:**
-```json
-{
-  "forecastSummary": "Low pollution forecast for today..."
-}
-```
-
----
-
-## `road_disruptions` — Road Disruptions
-
-Get a list of current disruptions on streets and A-roads in London.
-
-**Parameters:** None
-
-**Example query:** *"Are there any road disruptions on the North Circular?"*
-
-**Example response:**
-```
-A406 North Circular: Lane closed due to roadworks between Junction 1 and Junction 2
 ```
 
 ---
