@@ -34,7 +34,8 @@
       "transport": {
         "type": "stdio"
       },
-      "sha256": "03d2d4b2b237bf29408750ef73c621d86918e22f93e280cfadccee89e1b02a31"
+      "sha256": "03d2d4b2b237bf29408750ef73c621d86918e22f93e280cfadccee89e1b02a31",
+      "fileSha256": "04941ff1c0500bc75bfc2b8af05f18f2149672ec7704fc52f4eac249df25d736"
     }
   ]
 }
