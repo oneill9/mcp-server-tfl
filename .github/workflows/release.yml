@@ -62,7 +62,7 @@ jobs:
         run: cd node && mcpb pack
 
       - name: Upload MCPB artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v8
         with:
           name: mcpb-bundle
           path: node/tfl.mcpb
