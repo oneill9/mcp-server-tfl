@@ -59,7 +59,7 @@ jobs:
         run: npm install -g @anthropic-ai/mcpb
 
       - name: Pack MCPB bundle
-        run: cd node && mcpb pack
+        run: cd node && mcpb pack && mv node.mcpb tfl.mcpb
 
       - name: Upload MCPB artifact
         uses: actions/upload-artifact@v7
