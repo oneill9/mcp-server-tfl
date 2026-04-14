@@ -117,7 +117,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download MCPB artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: mcpb-bundle
           path: mcpb-out
@@ -238,7 +238,7 @@ jobs:
           ~/.local/bin/mcp-publisher publish
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           body_path: release_notes.md
           files: |
