@@ -28,14 +28,7 @@ class AppTest {
         wireMock = new WireMockServer(wireMockConfig().dynamicPort());
         wireMock.start();
 
-        wireMock.stubFor(get(urlPathMatching("/Line/central/Status"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("""
-                                [{"id":"central","name":"Central","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]}]
-                                """)));
-
-        wireMock.stubFor(get(urlPathMatching("/Line/central,victoria/Status"))
+        wireMock.stubFor(get(urlPathMatching("/Line/Mode/tube/Status"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("""
@@ -67,41 +60,14 @@ class AppTest {
                                 }
                                 """)));
 
-        wireMock.stubFor(get(urlPathMatching("/Line/Mode/tube/Disruption"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("""
-                                [
-                                  {"lineId":"central","description":"Minor delays due to earlier signal failure near Oxford Circus"},
-                                  {"lineId":"jubilee","description":"Good service"}
-                                ]
-                                """)));
-
-        wireMock.stubFor(get(urlPathMatching("/Line/Meta/Modes"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("""
-                                [
-                                  {"modeName":"tube","isTflService":true},
-                                  {"modeName":"bus","isTflService":true},
-                                  {"modeName":"dlr","isTflService":true}
-                                ]
-                                """)));
-
-        wireMock.stubFor(get(urlPathMatching("/Line/central/Route/Sequence/outbound"))
+        wireMock.stubFor(get(urlPathMatching("/StopPoint/Search/bank"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("""
                                 {
-                                  "lineId":"central","lineName":"Central","direction":"outbound",
-                                  "stopPointSequences":[{
-                                    "branchId":0,
-                                    "stopPoint":[
-                                      {"id":"940GZZLUEPG","name":"Epping Underground Station","lat":51.6937,"lon":0.1139},
-                                      {"id":"940GZZLUTHB","name":"Theydon Bois Underground Station","lat":51.6717,"lon":0.1033},
-                                      {"id":"940GZZLUOXC","name":"Oxford Circus Underground Station","lat":51.515,"lon":-0.1416}
-                                    ]
-                                  }]
+                                  "matches": [
+                                    {"id":"940GZZLUBND","name":"Bond Street","lat":51.514,"lon":-0.149}
+                                  ]
                                 }
                                 """)));
 
@@ -132,14 +98,15 @@ class AppTest {
                                 ]
                                 """)));
 
-        wireMock.stubFor(get(urlPathMatching("/Line/bad-line/Status"))
-                .willReturn(aResponse().withStatus(500)));
-
-        wireMock.stubFor(get(urlPathMatching("/StopPoint/notfound/Arrivals"))
-                .willReturn(aResponse().withStatus(404)));
-
-        wireMock.stubFor(get(urlPathMatching("/Line/Mode/unknown-mode/Disruption"))
+        wireMock.stubFor(get(urlPathMatching("/Line/Mode/unknown-mode/Status"))
                 .willReturn(aResponse().withStatus(400)));
+
+        wireMock.stubFor(get(urlPathMatching("/StopPoint/Search/notfound"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                { "matches": [] }
+                                """)));
 
         wireMock.stubFor(get(urlPathMatching("/BikePoint"))
                 .willReturn(aResponse()
@@ -251,18 +218,18 @@ class AppTest {
         assertNotNull(caps.tools());
     }
 
-    // --- line_status ---
+    // --- service_status ---
 
     @Test
-    void listToolsContainsLineStatus() {
+    void listToolsContainsServiceStatus() {
         var result = client.listTools();
         var names = result.tools().stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("line_status"), "Should contain line_status tool");
+        assertTrue(names.contains("service_status"), "Should contain service_status tool");
     }
 
     @Test
-    void lineStatusReturnsStatusForCentralLine() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "central")));
+    void serviceStatusReturnsStatusForMode() {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "tube")));
         assertFalse(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
@@ -280,7 +247,7 @@ class AppTest {
 
     @Test
     void arrivalsReturnsLiveArrivals() {
-        var result = client.callTool(new McpSchema.CallToolRequest("arrivals", Map.of("stopId", "940GZZLUOXC")));
+        var result = client.callTool(new McpSchema.CallToolRequest("arrivals", Map.of("stopName", "oxford")));
         assertFalse(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("Central"), "Response should mention the line name");
@@ -288,50 +255,7 @@ class AppTest {
         assertTrue(text.contains("2 min") || text.contains("120"), "Response should include time to station");
     }
 
-    // --- stop_search ---
 
-    @Test
-    void listToolsContainsStopSearch() {
-        var result = client.listTools();
-        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("stop_search"), "Should contain stop_search tool");
-    }
-
-    @Test
-    void stopSearchReturnsMatchingStops() {
-        var result = client.callTool(new McpSchema.CallToolRequest("stop_search", Map.of("query", "oxford")));
-        assertFalse(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("Oxford Circus"), "Response should mention Oxford Circus");
-        assertTrue(text.contains("940GZZLUOXC"), "Response should include the stop ID");
-    }
-
-    // --- disruptions ---
-
-    @Test
-    void listToolsContainsDisruptions() {
-        var result = client.listTools();
-        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("disruptions"), "Should contain disruptions tool");
-    }
-
-    @Test
-    void disruptionsReturnsDisruptionsByMode() {
-        var result = client.callTool(new McpSchema.CallToolRequest("disruptions", Map.of("modes", "tube")));
-        assertFalse(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("central"), "Response should mention the affected line");
-        assertTrue(text.contains("signal failure") || text.contains("Minor delays"), "Response should include disruption description");
-    }
-
-    @Test
-    void lineStatusAcceptsMultipleLines() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "central,victoria")));
-        assertFalse(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
-        assertTrue(text.toLowerCase().contains("victoria"), "Response should mention Victoria line");
-    }
 
     // --- journey ---
 
@@ -351,44 +275,7 @@ class AppTest {
         assertTrue(text.contains("Bank") || text.contains("leg") || text.contains("min"), "Response should include leg summary");
     }
 
-    // --- list_modes ---
 
-    @Test
-    void listToolsContainsListModes() {
-        var result = client.listTools();
-        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("list_modes"), "Should contain list_modes tool");
-    }
-
-    @Test
-    void listModesReturnsAvailableModes() {
-        var result = client.callTool(new McpSchema.CallToolRequest("list_modes", Map.of()));
-        assertFalse(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("tube"), "Response should mention tube");
-        assertTrue(text.contains("bus"), "Response should mention bus");
-        assertTrue(text.contains("dlr"), "Response should mention dlr");
-    }
-
-    // --- line_routes ---
-
-    @Test
-    void listToolsContainsLineRoutes() {
-        var result = client.listTools();
-        var names = result.tools().stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("line_routes"), "Should contain line_routes tool");
-    }
-
-    @Test
-    void lineRoutesReturnsStopsInOrder() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
-                Map.of("lineId", "central", "direction", "outbound")));
-        assertFalse(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("Central"), "Response should mention the line name");
-        assertTrue(text.contains("Epping"), "Response should include a station on the route");
-        assertTrue(text.contains("Oxford Circus"), "Response should include another station");
-    }
 
     // --- crowding ---
 
@@ -402,7 +289,7 @@ class AppTest {
     @Test
     void crowdingReturnsLiveData() {
         var result = client.callTool(new McpSchema.CallToolRequest("crowding",
-                Map.of("naptan", "940GZZLUOXC")));
+                Map.of("stopName", "oxford")));
         assertFalse(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("0.6863") || text.contains("68"), "Response should include crowding percentage");
@@ -420,7 +307,7 @@ class AppTest {
     @Test
     void faresReturnsFareBetweenStops() {
         var result = client.callTool(new McpSchema.CallToolRequest("fares",
-                Map.of("fromStopId", "940GZZLUOXC", "toStopId", "940GZZLUBND")));
+                Map.of("fromName", "oxford", "toName", "bank")));
         assertFalse(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("Oxford Circus"), "Response should mention origin");
@@ -461,8 +348,7 @@ class AppTest {
     void allToolsHaveRequiredAnnotations() {
         var result = client.listTools();
         var expectedTools = java.util.Set.of(
-                "line_status", "arrivals", "stop_search", "disruptions",
-                "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points");
+                "service_status", "arrivals", "journey", "crowding", "fares", "bike_points");
         for (McpSchema.Tool tool : result.tools()) {
             if (!expectedTools.contains(tool.name())) continue;
             assertNotNull(tool.annotations(), tool.name() + " should have annotations");
@@ -480,26 +366,18 @@ class AppTest {
     // --- error handling ---
 
     @Test
-    void lineStatusReturnsErrorOn500() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "bad-line")));
-        assertTrue(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("500"), "Error message should mention the HTTP status code");
-    }
-
-    @Test
-    void arrivalsReturnsErrorOn404() {
-        var result = client.callTool(new McpSchema.CallToolRequest("arrivals", Map.of("stopId", "notfound")));
-        assertTrue(result.isError());
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("404"), "Error message should mention the HTTP status code");
-    }
-
-    @Test
-    void disruptionsReturnsErrorOn400() {
-        var result = client.callTool(new McpSchema.CallToolRequest("disruptions", Map.of("modes", "unknown-mode")));
+    void serviceStatusReturnsErrorOn400() {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "unknown-mode")));
         assertTrue(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("400"), "Error message should mention the HTTP status code");
+    }
+
+    @Test
+    void arrivalsReturnsErrorOnNotFound() {
+        var result = client.callTool(new McpSchema.CallToolRequest("arrivals", Map.of("stopName", "notfound")));
+        assertTrue(result.isError());
+        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
+        assertTrue(text.contains("No stop found"), "Error message should mention No stop found");
     }
 }

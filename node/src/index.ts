@@ -41,14 +41,23 @@ const ANNOTATIONS = {
 
 const server = new McpServer({ name: "TfL", version: "1.3.1" });
 
+async function resolveStopName(query: string): Promise<string> {
+  const data = await httpGet(`/StopPoint/Search/${encodePath(query)}`);
+  if (!data.matches || data.matches.length === 0) {
+    throw new Error(`No stop found for name: ${query}`);
+  }
+  return data.matches[0].id;
+}
+
 // --- arrivals ---
 server.tool(
   "arrivals",
-  "Get live arrivals at a TfL stop. You should usually call the stop_search tool first to find the correct National Public Transport Access Node (NaPTAN) stopId.",
-  { stopId: z.string().describe("NaPTAN stop ID, e.g. 940GZZLUOXC") },
+  "Get live arrivals at a TfL stop.",
+  { stopName: z.string().describe("Stop name or search term, e.g. oxford") },
   { ...ANNOTATIONS, title: "Live Arrivals" },
-  async ({ stopId }) => {
+  async ({ stopName }) => {
     try {
+      const stopId = await resolveStopName(stopName);
       const data: any[] = await httpGet(`/StopPoint/${encodePath(stopId)}/Arrivals`);
       data.sort((a, b) => a.timeToStation - b.timeToStation);
       const lines = data.map((a) => {
@@ -64,49 +73,15 @@ server.tool(
   }
 );
 
-// --- stop_search ---
+// --- service_status ---
 server.tool(
-  "stop_search",
-  "Search for TfL stops by common name or search term. Use this tool first to lookup the stopId required by the arrivals tool.",
-  { query: z.string().describe("Stop name or search term, e.g. oxford") },
-  { ...ANNOTATIONS, title: "Stop Search" },
-  async ({ query }) => {
-    try {
-      const data = await httpGet(`/StopPoint/Search/${encodePath(query)}`);
-      const lines = (data.matches ?? []).map((m: any) => `${m.id} — ${m.name}`);
-      return { content: [{ type: "text", text: lines.join("\n") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error searching stops: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- disruptions ---
-server.tool(
-  "disruptions",
-  "Get current disruptions for one or more TfL public transport modes, e.g. tube, bus, overground, elizabeth-line, dlr.",
-  { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line") },
-  { ...ANNOTATIONS, title: "Disruptions" },
+  "service_status",
+  "Get the current operational status and delays for one or more TfL public transport modes.",
+  { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line,dlr") },
+  { ...ANNOTATIONS, title: "Service Status" },
   async ({ modes }) => {
     try {
-      const data: any[] = await httpGet(`/Line/Mode/${encodeSegments(modes)}/Disruption`);
-      const lines = data.map((d) => `${d.lineId}: ${d.description}`);
-      return { content: [{ type: "text", text: lines.join("\n") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching disruptions: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- line_status ---
-server.tool(
-  "line_status",
-  "Get the current operational status and delays for one or more TfL tube, bus, or rail lines.",
-  { lines: z.string().describe("Comma-separated line IDs, e.g. central,victoria,jubilee,elizabeth-line,overground") },
-  { ...ANNOTATIONS, title: "Line Status" },
-  async ({ lines }) => {
-    try {
-      const data: any[] = await httpGet(`/Line/${encodeSegments(lines)}/Status`);
+      const data: any[] = await httpGet(`/Line/Mode/${encodeSegments(modes)}/Status`);
       const result = data.map((line) => {
         const statuses = (line.lineStatuses ?? []).map((s: any) => {
           const desc = s.statusSeverityDescription ?? "";
@@ -117,7 +92,7 @@ server.tool(
       });
       return { content: [{ type: "text", text: result.join("\n") }] };
     } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching line status: ${e.message}` }], isError: true };
+      return { content: [{ type: "text", text: `Error fetching service status: ${e.message}` }], isError: true };
     }
   }
 );
@@ -152,57 +127,15 @@ server.tool(
   }
 );
 
-// --- list_modes ---
-server.tool(
-  "list_modes",
-  "Get a list of all valid TfL transport modes (e.g., tube, bus, dlr, overground).",
-  {},
-  { ...ANNOTATIONS, title: "List Transport Modes" },
-  async () => {
-    try {
-      const data: any[] = await httpGet("/Line/Meta/Modes");
-      const modes = data.map((m) => m.modeName);
-      return { content: [{ type: "text", text: modes.join(", ") }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching modes: ${e.message}` }], isError: true };
-    }
-  }
-);
-
-// --- line_routes ---
-server.tool(
-  "line_routes",
-  "Get the ordered sequence of stops along a TfL line in a given direction. Useful for seeing all stations on a line in order.",
-  {
-    lineId: z.string().describe("Line ID, e.g. central, victoria, northern"),
-    direction: z.string().describe("Direction of travel: inbound or outbound"),
-  },
-  { ...ANNOTATIONS, title: "Line Routes" },
-  async ({ lineId, direction }) => {
-    try {
-      const data = await httpGet(`/Line/${encodePath(lineId)}/Route/Sequence/${encodePath(direction)}`);
-      const lineName = data.lineName ?? lineId;
-      const stops: string[] = [];
-      for (const sequence of data.stopPointSequences ?? []) {
-        for (const stop of sequence.stopPoint ?? []) {
-          stops.push(`  ${stop.name} (${stop.id})`);
-        }
-      }
-      return { content: [{ type: "text", text: `${lineName} (${direction}):\n${stops.join("\n")}` }] };
-    } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching line routes: ${e.message}` }], isError: true };
-    }
-  }
-);
-
 // --- crowding ---
 server.tool(
   "crowding",
-  "Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline. Use stop_search to find the NaPTAN ID first.",
-  { naptan: z.string().describe("NaPTAN station ID, e.g. 940GZZLUOXC") },
+  "Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline.",
+  { stopName: z.string().describe("Stop name or search term, e.g. oxford") },
   { ...ANNOTATIONS, title: "Station Crowding" },
-  async ({ naptan }) => {
+  async ({ stopName }) => {
     try {
+      const naptan = await resolveStopName(stopName);
       const data = await httpGet(`/Crowding/${encodePath(naptan)}/Live`);
       if (!data.dataAvailable) {
         return { content: [{ type: "text", text: `Crowding data not available for ${naptan}` }] };
@@ -219,14 +152,16 @@ server.tool(
 // --- fares ---
 server.tool(
   "fares",
-  "Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel. Use stop_search to find stop IDs first.",
+  "Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel.",
   {
-    fromStopId: z.string().describe("Origin NaPTAN stop ID, e.g. 940GZZLUOXC"),
-    toStopId: z.string().describe("Destination NaPTAN stop ID, e.g. 940GZZLUBND"),
+    fromName: z.string().describe("Origin stop name, e.g. oxford"),
+    toName: z.string().describe("Destination stop name, e.g. bank"),
   },
   { ...ANNOTATIONS, title: "Fares" },
-  async ({ fromStopId, toStopId }) => {
+  async ({ fromName, toName }) => {
     try {
+      const fromStopId = await resolveStopName(fromName);
+      const toStopId = await resolveStopName(toName);
       const data: any[] = await httpGet(`/StopPoint/${encodePath(fromStopId)}/FareTo/${encodePath(toStopId)}`);
       const parts: string[] = [];
       for (const section of data) {

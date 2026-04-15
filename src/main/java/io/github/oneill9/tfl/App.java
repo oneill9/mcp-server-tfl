@@ -73,17 +73,18 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("arrivals")
-                                .description("Get live arrivals at a TfL stop. You should usually call the stop_search tool first to find the correct National Public Transport Access Node (NaPTAN) stopId.")
+                                .description("Get live arrivals at a TfL stop.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("stopId", Map.of("type", "string", "description", "NaPTAN stop ID, e.g. 940GZZLUOXC")),
-                                        List.of("stopId"),
+                                        Map.of("stopName", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
+                                        List.of("stopName"),
                                         null, null, null))
                                 .annotations(new McpSchema.ToolAnnotations("Live Arrivals", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
-                            String stopId = request.arguments().get("stopId").toString();
+                            String stopName = request.arguments().get("stopName").toString();
                             try {
+                                String stopId = resolveStopName(stopName);
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent(fetchArrivals(stopId))
                                         .build();
@@ -96,72 +97,24 @@ public class App {
                         })
                 .toolCall(
                         McpSchema.Tool.builder()
-                                .name("stop_search")
-                                .description("Search for TfL stops by common name or search term. Use this tool first to lookup the stopId required by the arrivals tool.")
+                                .name("service_status")
+                                .description("Get the current operational status and delays for one or more TfL public transport modes.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("query", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
-                                        List.of("query"),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Stop Search", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            String query = request.arguments().get("query").toString();
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchStopSearch(query))
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error searching stops: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("disruptions")
-                                .description("Get current disruptions for one or more TfL public transport modes, e.g. tube, bus, overground, elizabeth-line, dlr.")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line")),
+                                        Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line,dlr")),
                                         List.of("modes"),
                                         null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Disruptions", true, false, true, true, null))
+                                .annotations(new McpSchema.ToolAnnotations("Service Status", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String modes = request.arguments().get("modes").toString();
                             try {
                                 return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchDisruptions(modes))
+                                        .addTextContent(fetchServiceStatus(modes))
                                         .build();
                             } catch (Exception e) {
                                 return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching disruptions: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("line_status")
-                                .description("Get the current operational status and delays for one or more TfL tube, bus, or rail lines.")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of("lines", Map.of("type", "string", "description", "Comma-separated line IDs, e.g. central,victoria,jubilee,elizabeth-line,overground")),
-                                        List.of("lines"),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Line Status", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            String lines = request.arguments().get("lines").toString();
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchLineStatus(lines))
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching line status: " + e.getMessage())
+                                        .addTextContent("Error fetching service status: " + e.getMessage())
                                         .isError(true)
                                         .build();
                             }
@@ -195,68 +148,19 @@ public class App {
                         })
                 .toolCall(
                         McpSchema.Tool.builder()
-                                .name("list_modes")
-                                .description("Get a list of all valid TfL transport modes (e.g., tube, bus, dlr, overground).")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of(),
-                                        List.of(),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("List Transport Modes", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchListModes())
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching modes: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
-                                .name("line_routes")
-                                .description("Get the ordered sequence of stops along a TfL line in a given direction. Useful for seeing all stations on a line in order.")
-                                .inputSchema(new McpSchema.JsonSchema(
-                                        "object",
-                                        Map.of(
-                                                "lineId", Map.of("type", "string", "description", "Line ID, e.g. central, victoria, northern"),
-                                                "direction", Map.of("type", "string", "description", "Direction of travel: inbound or outbound")),
-                                        List.of("lineId", "direction"),
-                                        null, null, null))
-                                .annotations(new McpSchema.ToolAnnotations("Line Routes", true, false, true, true, null))
-                                .build(),
-                        (exchange, request) -> {
-                            String lineId = request.arguments().get("lineId").toString();
-                            String direction = request.arguments().get("direction").toString();
-                            try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchLineRoutes(lineId, direction))
-                                        .build();
-                            } catch (Exception e) {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent("Error fetching line routes: " + e.getMessage())
-                                        .isError(true)
-                                        .build();
-                            }
-                        })
-                .toolCall(
-                        McpSchema.Tool.builder()
                                 .name("crowding")
-                                .description("Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline. Use stop_search to find the NaPTAN ID first.")
+                                .description("Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
-                                        Map.of("naptan", Map.of("type", "string", "description", "NaPTAN station ID, e.g. 940GZZLUOXC")),
-                                        List.of("naptan"),
+                                        Map.of("stopName", Map.of("type", "string", "description", "Stop name or search term, e.g. oxford")),
+                                        List.of("stopName"),
                                         null, null, null))
                                 .annotations(new McpSchema.ToolAnnotations("Station Crowding", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
-                            String naptan = request.arguments().get("naptan").toString();
+                            String stopName = request.arguments().get("stopName").toString();
                             try {
+                                String naptan = resolveStopName(stopName);
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent(fetchCrowding(naptan))
                                         .build();
@@ -270,20 +174,22 @@ public class App {
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("fares")
-                                .description("Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel. Use stop_search to find stop IDs first.")
+                                .description("Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel.")
                                 .inputSchema(new McpSchema.JsonSchema(
                                         "object",
                                         Map.of(
-                                                "fromStopId", Map.of("type", "string", "description", "Origin NaPTAN stop ID, e.g. 940GZZLUOXC"),
-                                                "toStopId", Map.of("type", "string", "description", "Destination NaPTAN stop ID, e.g. 940GZZLUBND")),
-                                        List.of("fromStopId", "toStopId"),
+                                                "fromName", Map.of("type", "string", "description", "Origin stop name, e.g. oxford"),
+                                                "toName", Map.of("type", "string", "description", "Destination stop name, e.g. bank")),
+                                        List.of("fromName", "toName"),
                                         null, null, null))
                                 .annotations(new McpSchema.ToolAnnotations("Fares", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
-                            String fromStopId = request.arguments().get("fromStopId").toString();
-                            String toStopId = request.arguments().get("toStopId").toString();
+                            String fromName = request.arguments().get("fromName").toString();
+                            String toName = request.arguments().get("toName").toString();
                             try {
+                                String fromStopId = resolveStopName(fromName);
+                                String toStopId = resolveStopName(toName);
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent(fetchFares(fromStopId, toStopId))
                                         .build();
@@ -388,35 +294,13 @@ public class App {
         return JSON.readTree(response.body());
     }
 
-    private String fetchListModes() throws Exception {
-        JsonNode root = httpGet("/Line/Meta/Modes");
-        var modes = new ArrayList<String>();
-        for (JsonNode mode : root) {
-            modes.add(mode.path("modeName").asText());
-        }
-        return String.join(", ", modes);
-    }
-
-    private String fetchDisruptions(String modes) throws Exception {
-        JsonNode root = httpGet("/Line/Mode/" + encodeSegments(modes) + "/Disruption");
-        var sb = new StringBuilder();
-        for (JsonNode disruption : root) {
-            String lineId = disruption.path("lineId").asText();
-            String description = disruption.path("description").asText();
-            sb.append(lineId).append(": ").append(description).append("\n");
-        }
-        return sb.toString().trim();
-    }
-
-    private String fetchStopSearch(String query) throws Exception {
+    private String resolveStopName(String query) throws Exception {
         JsonNode root = httpGet("/StopPoint/Search/" + encodePath(query));
-        var sb = new StringBuilder();
-        for (JsonNode match : root.path("matches")) {
-            String id = match.path("id").asText();
-            String name = match.path("name").asText();
-            sb.append(id).append(" — ").append(name).append("\n");
+        JsonNode matches = root.path("matches");
+        if (matches.isMissingNode() || !matches.elements().hasNext()) {
+            throw new Exception("No stop found for name: " + query);
         }
-        return sb.toString().trim();
+        return matches.elements().next().path("id").asText();
     }
 
     private String fetchArrivals(String stopId) throws Exception {
@@ -459,20 +343,6 @@ public class App {
         return sb.toString().trim();
     }
 
-    private String fetchLineRoutes(String lineId, String direction) throws Exception {
-        JsonNode root = httpGet("/Line/" + encodePath(lineId) + "/Route/Sequence/" + encodePath(direction));
-        String lineName = root.path("lineName").asText(lineId);
-        var sb = new StringBuilder();
-        sb.append(lineName).append(" (").append(direction).append("):\n");
-        for (JsonNode sequence : root.path("stopPointSequences")) {
-            for (JsonNode stop : sequence.path("stopPoint")) {
-                String name = stop.path("name").asText();
-                String id = stop.path("id").asText();
-                sb.append("  ").append(name).append(" (").append(id).append(")\n");
-            }
-        }
-        return sb.toString().trim();
-    }
 
     private String fetchCrowding(String naptan) throws Exception {
         JsonNode root = httpGet("/Crowding/" + encodePath(naptan) + "/Live");
@@ -529,8 +399,8 @@ public class App {
         return sb.toString().trim();
     }
 
-    private String fetchLineStatus(String lines) throws Exception {
-        JsonNode root = httpGet("/Line/" + encodeSegments(lines) + "/Status");
+    private String fetchServiceStatus(String modes) throws Exception {
+        JsonNode root = httpGet("/Line/Mode/" + encodeSegments(modes) + "/Status");
         var sb = new StringBuilder();
         for (JsonNode line : root) {
             String name = line.path("name").asText();

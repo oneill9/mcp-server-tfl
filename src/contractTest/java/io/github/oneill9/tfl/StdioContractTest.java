@@ -83,14 +83,10 @@ class StdioContractTest {
     void serverAdvertisesAllTools() {
         var tools = client.listTools().tools();
         var names = tools.stream().map(McpSchema.Tool::name).toList();
-        assertTrue(names.contains("line_status"));
+        assertTrue(names.contains("service_status"));
         assertTrue(names.contains("arrivals"));
-        assertTrue(names.contains("stop_search"));
-        assertTrue(names.contains("disruptions"));
         assertTrue(names.contains("journey"));
         assertTrue(names.contains("bike_points"));
-        assertTrue(names.contains("list_modes"));
-        assertTrue(names.contains("line_routes"));
         assertTrue(names.contains("crowding"));
         assertTrue(names.contains("fares"));
     }
@@ -98,30 +94,12 @@ class StdioContractTest {
     // --- tools (unauthenticated) ---
 
     @Test
-    void listModesWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("list_modes", Map.of()));
-        assertFalse(result.isError(), "list_modes should succeed without an API key");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("tube"), "Response should include tube mode");
-        assertTrue(text.contains("bus"), "Response should include bus mode");
-    }
-
-    @Test
-    void lineStatusWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_status",
-                Map.of("lines", "central")));
-        assertFalse(result.isError(), "line_status should succeed without an API key");
+    void serviceStatusWithoutKey() {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status",
+                Map.of("modes", "tube")));
+        assertFalse(result.isError(), "service_status should succeed without an API key");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
-    }
-
-    @Test
-    void stopSearchWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("stop_search",
-                Map.of("query", "oxford circus")));
-        assertFalse(result.isError(), "stop_search should succeed without an API key");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.toLowerCase().contains("oxford"), "Response should mention Oxford Circus");
     }
 
     @Test
@@ -134,17 +112,9 @@ class StdioContractTest {
 
     @Test
     void arrivalsWithoutKey() {
-        // 940GZZLUOXC = Oxford Circus Underground Station
         var result = client.callTool(new McpSchema.CallToolRequest("arrivals",
-                Map.of("stopId", "940GZZLUOXC")));
+                Map.of("stopName", "Oxford Circus Underground Station")));
         assertFalse(result.isError(), "arrivals should succeed without an API key");
-    }
-
-    @Test
-    void disruptionsWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("disruptions",
-                Map.of("modes", "tube")));
-        assertFalse(result.isError(), "disruptions should succeed without an API key");
     }
 
     @Test
@@ -158,18 +128,9 @@ class StdioContractTest {
     }
 
     @Test
-    void lineRoutesWithoutKey() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
-                Map.of("lineId", "central", "direction", "outbound")));
-        assertFalse(result.isError(), "line_routes should succeed without an API key");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("Central"), "Response should mention the Central line");
-    }
-
-    @Test
     void crowdingWithoutKey() {
         var result = client.callTool(new McpSchema.CallToolRequest("crowding",
-                Map.of("naptan", "940GZZLUOXC")));
+                Map.of("stopName", "Oxford Circus Underground Station")));
         assertFalse(result.isError(), "crowding should succeed without an API key");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertFalse(text.isBlank(), "Response should be non-empty");
@@ -178,7 +139,7 @@ class StdioContractTest {
     @Test
     void faresWithoutKey() {
         var result = client.callTool(new McpSchema.CallToolRequest("fares",
-                Map.of("fromStopId", "940GZZLUOXC", "toStopId", "940GZZLUBND")));
+                Map.of("fromName", "Oxford Circus Underground Station", "toName", "Bond Street Underground Station")));
         assertFalse(result.isError(), "fares should succeed without an API key");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertFalse(text.isBlank(), "Response should be non-empty");

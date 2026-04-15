@@ -37,13 +37,18 @@ const STUBS: Record<string, { status: number; body: any }> = {
       ],
     },
   },
-  "/Line/Mode/tube/Disruption": {
+  "/StopPoint/Search/bank": {
+    status: 200,
+    body: { matches: [{ id: "940GZZLUBND", name: "Bond Street" }] },
+  },
+  "/Line/Mode/tube/Status": {
     status: 200,
     body: [
-      { lineId: "central", description: "Minor delays due to earlier signal failure near Oxford Circus" },
-      { lineId: "jubilee", description: "Good service" },
+      { id: "central", name: "Central", lineStatuses: [{ statusSeverityDescription: "Good Service", reason: "" }] },
+      { id: "victoria", name: "Victoria", lineStatuses: [{ statusSeverityDescription: "Minor Delays", reason: "Earlier signal failure" }] },
     ],
   },
+  "/Line/Mode/unknown-mode/Status": { status: 400, body: "" },
   "/Line/Meta/Modes": {
     status: 200,
     body: [{ modeName: "tube", isTflService: true }, { modeName: "bus", isTflService: true }, { modeName: "dlr", isTflService: true }],
@@ -124,9 +129,7 @@ const STUBS: Record<string, { status: number; body: any }> = {
     ],
   },
   // error stubs
-  "/Line/bad-line/Status": { status: 500, body: "" },
-  "/StopPoint/notfound/Arrivals": { status: 404, body: "" },
-  "/Line/Mode/unknown-mode/Disruption": { status: 400, body: "" },
+  "/StopPoint/Search/notfound": { status: 200, body: { matches: [] } },
 };
 
 let mockServer: http.Server;
@@ -179,12 +182,11 @@ afterAll(async () => {
 // --- tool list ---
 
 describe("tool listing", () => {
-  it("lists all 10 tools", async () => {
+  it("lists all 6 tools", async () => {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name);
     for (const expected of [
-      "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points",
+      "service_status", "arrivals", "journey", "crowding", "fares", "bike_points",
     ]) {
       expect(names).toContain(expected);
     }
@@ -197,8 +199,7 @@ describe("tool annotations", () => {
   it("all tools have readOnlyHint, destructiveHint, and title", async () => {
     const result = await client.listTools();
     const expected = new Set([
-      "line_status", "arrivals", "stop_search", "disruptions",
-      "journey", "list_modes", "line_routes", "crowding", "fares", "bike_points",
+      "service_status", "arrivals", "journey", "crowding", "fares", "bike_points",
     ]);
     for (const tool of result.tools) {
       if (!expected.has(tool.name)) continue;
@@ -209,78 +210,44 @@ describe("tool annotations", () => {
   });
 });
 
-// --- line_status ---
+// --- service_status ---
 
-describe("line_status", () => {
-  it("returns status for central line", async () => {
-    const result = await client.callTool({ name: "line_status", arguments: { lines: "central" } });
+describe("service_status", () => {
+  it("returns status for tube mode", async () => {
+    const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
     const text = (result.content as any)[0].text;
     expect(text.toLowerCase()).toContain("central");
     expect(text).toContain("Good Service");
   });
 
-  it("accepts multiple lines", async () => {
-    const result = await client.callTool({ name: "line_status", arguments: { lines: "central,victoria" } });
-    const text = (result.content as any)[0].text;
-    expect(text.toLowerCase()).toContain("central");
-    expect(text.toLowerCase()).toContain("victoria");
-  });
-
-  it("returns error on 500", async () => {
-    const result = await client.callTool({ name: "line_status", arguments: { lines: "bad-line" } });
+  it("returns error on 400", async () => {
+    const result = await client.callTool({ name: "service_status", arguments: { modes: "unknown-mode" } });
     expect(result.isError).toBe(true);
     const text = (result.content as any)[0].text;
-    expect(text).toContain("500");
+    expect(text).toContain("400");
   });
 });
 
 // --- arrivals ---
 
 describe("arrivals", () => {
-  it("returns live arrivals", async () => {
-    const result = await client.callTool({ name: "arrivals", arguments: { stopId: "940GZZLUOXC" } });
+  it("returns live arrivals using stop name resolution", async () => {
+    const result = await client.callTool({ name: "arrivals", arguments: { stopName: "oxford" } });
     const text = (result.content as any)[0].text;
     expect(text).toContain("Central");
     expect(text).toContain("Epping");
     expect(text).toContain("2 min");
   });
 
-  it("returns error on 404", async () => {
-    const result = await client.callTool({ name: "arrivals", arguments: { stopId: "notfound" } });
+  it("returns error on missing stop", async () => {
+    const result = await client.callTool({ name: "arrivals", arguments: { stopName: "notfound" } });
     expect(result.isError).toBe(true);
     const text = (result.content as any)[0].text;
-    expect(text).toContain("404");
+    expect(text).toContain("No stop found");
   });
 });
 
-// --- stop_search ---
 
-describe("stop_search", () => {
-  it("returns matching stops", async () => {
-    const result = await client.callTool({ name: "stop_search", arguments: { query: "oxford" } });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("Oxford Circus");
-    expect(text).toContain("940GZZLUOXC");
-  });
-});
-
-// --- disruptions ---
-
-describe("disruptions", () => {
-  it("returns disruptions by mode", async () => {
-    const result = await client.callTool({ name: "disruptions", arguments: { modes: "tube" } });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("central");
-    expect(text).toContain("signal failure");
-  });
-
-  it("returns error on 400", async () => {
-    const result = await client.callTool({ name: "disruptions", arguments: { modes: "unknown-mode" } });
-    expect(result.isError).toBe(true);
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("400");
-  });
-});
 
 // --- journey ---
 
@@ -293,35 +260,13 @@ describe("journey", () => {
   });
 });
 
-// --- list_modes ---
 
-describe("list_modes", () => {
-  it("returns available modes", async () => {
-    const result = await client.callTool({ name: "list_modes", arguments: {} });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("tube");
-    expect(text).toContain("bus");
-    expect(text).toContain("dlr");
-  });
-});
-
-// --- line_routes ---
-
-describe("line_routes", () => {
-  it("returns stops in order", async () => {
-    const result = await client.callTool({ name: "line_routes", arguments: { lineId: "central", direction: "outbound" } });
-    const text = (result.content as any)[0].text;
-    expect(text).toContain("Central");
-    expect(text).toContain("Epping");
-    expect(text).toContain("Oxford Circus");
-  });
-});
 
 // --- crowding ---
 
 describe("crowding", () => {
-  it("returns live data", async () => {
-    const result = await client.callTool({ name: "crowding", arguments: { naptan: "940GZZLUOXC" } });
+  it("returns live data using stop name", async () => {
+    const result = await client.callTool({ name: "crowding", arguments: { stopName: "oxford" } });
     const text = (result.content as any)[0].text;
     expect(text).toMatch(/0\.6863|69/);
   });
@@ -348,8 +293,8 @@ describe("bike_points", () => {
 // --- fares ---
 
 describe("fares", () => {
-  it("returns fare between stops", async () => {
-    const result = await client.callTool({ name: "fares", arguments: { fromStopId: "940GZZLUOXC", toStopId: "940GZZLUBND" } });
+  it("returns fare between stops using names", async () => {
+    const result = await client.callTool({ name: "fares", arguments: { fromName: "oxford", toName: "bank" } });
     const text = (result.content as any)[0].text;
     expect(text).toContain("Oxford Circus");
     expect(text).toContain("Bond Street");

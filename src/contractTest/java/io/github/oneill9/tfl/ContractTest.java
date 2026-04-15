@@ -50,61 +50,28 @@ class ContractTest {
     }
 
     @Test
-    void listModesReturnsRealModes() {
-        var result = client.callTool(new McpSchema.CallToolRequest("list_modes", Map.of()));
-        assertFalse(result.isError(), "list_modes should not return an error");
+    void serviceStatusReturnsRealStatus() {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "tube")));
+        assertFalse(result.isError(), "service_status should not return an error");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "list_modes should return a non-empty response");
-        assertTrue(text.contains("tube"), "TfL should always include tube as a mode");
-        assertTrue(text.contains("bus"), "TfL should always include bus as a mode");
-    }
-
-    @Test
-    void lineStatusReturnsRealStatus() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_status", Map.of("lines", "central")));
-        assertFalse(result.isError(), "line_status should not return an error");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "line_status should return a non-empty response");
+        assertFalse(text.isBlank(), "service_status should return a non-empty response");
         assertTrue(text.toLowerCase().contains("central"), "Response should mention the Central line");
     }
 
     @Test
-    void lineStatusAcceptsMultipleLines() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_status",
-                Map.of("lines", "central,victoria,jubilee")));
-        assertFalse(result.isError(), "line_status should not return an error for multiple lines");
+    void serviceStatusAcceptsMultipleModes() {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status",
+                Map.of("modes", "tube,bus")));
+        assertFalse(result.isError(), "service_status should not return an error for multiple modes");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.toLowerCase().contains("central"), "Response should mention Central");
-        assertTrue(text.toLowerCase().contains("victoria"), "Response should mention Victoria");
-        assertTrue(text.toLowerCase().contains("jubilee"), "Response should mention Jubilee");
-    }
-
-    @Test
-    void stopSearchReturnsRealStops() {
-        var result = client.callTool(new McpSchema.CallToolRequest("stop_search",
-                Map.of("query", "oxford circus")));
-        assertFalse(result.isError(), "stop_search should not return an error");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "stop_search should return a non-empty response");
-        assertTrue(text.toLowerCase().contains("oxford"), "Response should mention Oxford Circus");
-        assertTrue(text.contains("940GZZLUOXC"), "Response should include the Oxford Circus NaPTAN ID");
+        assertFalse(text.isBlank(), "service_status should return a non-empty response");
     }
 
     @Test
     void arrivalsReturnsRealData() {
-        // 940GZZLUOXC = Oxford Circus Underground Station
-        // Arrivals may legitimately be empty outside service hours — just assert no error
         var result = client.callTool(new McpSchema.CallToolRequest("arrivals",
-                Map.of("stopId", "940GZZLUOXC")));
+                Map.of("stopName", "Oxford Circus Underground Station")));
         assertFalse(result.isError(), "arrivals should not return an error");
-    }
-
-    @Test
-    void disruptionsReturnsRealData() {
-        var result = client.callTool(new McpSchema.CallToolRequest("disruptions",
-                Map.of("modes", "tube")));
-        assertFalse(result.isError(), "disruptions should not return an error");
-        // May legitimately be empty when the tube is running normally
     }
 
     @Test
@@ -129,20 +96,9 @@ class ContractTest {
     }
 
     @Test
-    void lineRoutesReturnsRealStops() {
-        var result = client.callTool(new McpSchema.CallToolRequest("line_routes",
-                Map.of("lineId", "central", "direction", "outbound")));
-        assertFalse(result.isError(), "line_routes should not return an error");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "line_routes should return a non-empty response");
-        assertTrue(text.contains("Central"), "Response should mention the Central line");
-    }
-
-    @Test
     void crowdingReturnsRealData() {
-        // 940GZZLUOXC = Oxford Circus Underground Station
         var result = client.callTool(new McpSchema.CallToolRequest("crowding",
-                Map.of("naptan", "940GZZLUOXC")));
+                Map.of("stopName", "Oxford Circus Underground Station")));
         assertFalse(result.isError(), "crowding should not return an error");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertFalse(text.isBlank(), "crowding should return a non-empty response");
@@ -150,9 +106,8 @@ class ContractTest {
 
     @Test
     void faresReturnsRealData() {
-        // Oxford Circus to Bond Street
         var result = client.callTool(new McpSchema.CallToolRequest("fares",
-                Map.of("fromStopId", "940GZZLUOXC", "toStopId", "940GZZLUBND")));
+                Map.of("fromName", "Oxford Circus Underground Station", "toName", "Bond Street Underground Station")));
         assertFalse(result.isError(), "fares should not return an error");
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertFalse(text.isBlank(), "fares should return a non-empty response");
