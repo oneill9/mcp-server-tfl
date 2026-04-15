@@ -9,3 +9,6 @@ build/
 # Node
 node/node_modules/
 node/dist/
+
+# Eclipse / Local Build
+bin/
