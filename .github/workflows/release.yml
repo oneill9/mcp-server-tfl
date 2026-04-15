@@ -198,7 +198,7 @@ jobs:
           }
           ```
 
-          An optional TfL API key can be passed via the `TFL_APP_KEY` environment variable to raise rate limits. Register at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
+          A TfL API key is **strongly recommended** — without one, strict rate limits will impact most real-world usage. Pass it via the `TFL_APP_KEY` environment variable. [Register free at api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
           TEMPLATE
           # Replace REPO:TAG placeholder with actual values
           sed -i "s|ghcr.io/REPO:TAG|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" release_notes.md

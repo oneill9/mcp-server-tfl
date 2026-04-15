@@ -29,6 +29,12 @@ This MCP server exposes the [TfL (Transport for London) Unified API](https://api
 - Check live Santander Cycles docking station availability across London
 - See bikes available and empty docks at each station
 
+## API Key
+
+An API key is **strongly recommended** for effective use. Without one, TfL applies strict anonymous rate limits that will impact most real-world usage.
+
+[Register a free key at api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/) — takes a few minutes. Once you have your key, see the [API Key Setup Guide](api-keys.md) for how to pass it to the server.
+
 For the full list of tools and parameters, see the [Tools Reference](tools.md).
 
 To learn how to install and connect this server to your AI assistant, check out the [Installation Guide](installation.md).
