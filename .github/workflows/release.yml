@@ -165,38 +165,60 @@ jobs:
 
           | Tool | Description |
           |---|---|
-          | `line_status` | Current status of one or more lines |
-          | `arrivals` | Live arrivals at a stop |
-          | `stop_search` | Search for stops by name |
-          | `disruptions` | Current disruptions by transport mode |
+          | `service_status` | Current status and disruptions by mode |
+          | `arrivals` | Live arrivals at a stop by name |
           | `journey` | Plan a journey between two points |
           | `bike_points` | List Santander Cycles docking stations |
-          | `list_modes` | List all valid TfL transport modes |
-          | `air_quality` | Current London air quality data |
-          | `road_disruptions` | Disrupted streets and A-roads |
+          | `crowding` | Live station crowding level by name |
+          | `fares` | Fare information between two named stops |
 
           ### Installation
 
-          #### Docker (recommended)
+          #### Claude Desktop — MCPB extension (recommended)
 
-          Add to your Claude Desktop `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`, Linux: `~/.config/Claude/`):
+          Download `tfl.mcpb` from the assets below and double-click to install it directly in Claude Desktop.
+
+          Or add manually to your `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`, Linux: `~/.config/Claude/`):
 
           ```json
-          "tfl": {
-            "command": "docker",
-            "args": ["run", "-i", "--rm", "ghcr.io/REPO:TAG"]
+          {
+            "mcpServers": {
+              "tfl": {
+                "command": "npx",
+                "args": ["-y", "@oneill9/mcp-server-tfl"]
+              }
+            }
+          }
+          ```
+
+          #### Docker
+
+          ```json
+          {
+            "mcpServers": {
+              "tfl": {
+                "command": "docker",
+                "args": ["run", "-i", "--rm", "ghcr.io/REPO:TAG"]
+              }
+            }
           }
           ```
 
           #### Java (from ZIP)
 
-          Download the ZIP below, extract it, and add to your Claude Desktop config:
+          Download the ZIP below, extract it, and add to your config:
 
           ```json
-          "tfl": {
-            "command": "/path/to/mcp-server-tfl/bin/mcp-server-tfl"
+          {
+            "mcpServers": {
+              "tfl": {
+                "command": "/path/to/mcp-server-tfl/bin/mcp-server-tfl"
+              }
+            }
           }
           ```
+
+          ### API Key
 
           A TfL API key is **strongly recommended** — without one, strict rate limits will impact most real-world usage. Pass it via the `TFL_APP_KEY` environment variable. [Register free at api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
           TEMPLATE
