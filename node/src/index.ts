@@ -39,7 +39,7 @@ const ANNOTATIONS = {
   openWorldHint: true as const,
 };
 
-const server = new McpServer({ name: "TfL", version: "1.3.1" });
+const server = new McpServer({ name: "TfL", version: "1.4.0" });
 
 async function resolveStopName(query: string): Promise<string> {
   const data = await httpGet(`/StopPoint/Search/${encodePath(query)}`);
@@ -217,7 +217,7 @@ server.tool(
 
 // --- start server ---
 async function main() {
-  console.error(`Starting TfL MCP Server v1.3.1...`);
+  console.error(`Starting TfL MCP Server v1.4.0...`);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("TfL MCP Server connected and ready");
