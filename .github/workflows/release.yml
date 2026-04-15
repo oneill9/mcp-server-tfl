@@ -49,7 +49,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           cd node
-          npm version "$VERSION" --no-git-tag-version
+          npm version "$VERSION" --allow-same-version --no-git-tag-version
           jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
           sed -i "s/version: \"[^\"]*\"/version: \"$VERSION\"/g" src/index.ts
           sed -i "s/Server v[0-9]*\.[0-9]*\.[0-9]*/Server v$VERSION/g" src/index.ts
@@ -234,7 +234,7 @@ jobs:
              server.json > server.json.tmp && mv server.json.tmp server.json
           sed -i "s/^version=.*/version=$VERSION/" gradle.properties
           cd node
-          npm version "$VERSION" --no-git-tag-version
+          npm version "$VERSION" --allow-same-version --no-git-tag-version
           jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
           sed -i "s/version: \"[^\"]*\"/version: \"$VERSION\"/g" src/index.ts
           sed -i "s/Server v[0-9]*\.[0-9]*\.[0-9]*/Server v$VERSION/g" src/index.ts
