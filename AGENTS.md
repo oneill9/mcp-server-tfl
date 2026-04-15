@@ -55,25 +55,49 @@ The server has two feature-equivalent implementations: **Java** (Docker/ZIP, als
 
 ## Development Workflow
 
-We use **red-green TDD**:
+We use **red-green TDD** and **Conventional Commits**:
 
 ### Java
 1. Write a failing test in `AppTest.java` that covers the new tool
 2. Implement the tool in `App.java` (minimal code to pass the test)
 3. Refactor if needed
-4. Commit and push
+4. Commit using conventional commits (e.g., `feat:`, `fix:`, `test:`) and push
 
 ### Node.js
 1. Write a failing test in `node/test/server.test.ts` that covers the new tool
 2. Implement the tool in `node/src/index.ts` (minimal code to pass the test)
 3. Refactor if needed
-4. Commit and push
+4. Commit using conventional commits (e.g., `feat:`, `fix:`, `test:`) and push
 
 When adding a new tool, implement it in **both** Java and Node.js to keep the implementations in sync.
 
 ### Java Version Note
 
 The project targets **Java 25** (`build.gradle.kts` toolchain). If the local environment only has an older JDK (e.g. Java 21) and you temporarily downgrade the toolchain to run tests, **you must restore it to Java 25 before committing**. The CI runners use Java 25 and the build will fail if `build.gradle.kts` specifies a lower version.
+
+### Error Handling Patterns
+
+The MCP tools must present errors gracefully to the calling LLM:
+- Do not let exceptions crash the transport.
+- Ensure both Java and Node.js implement the same tool-level error handling.
+- Use standard MCP error responses (e.g., `isError: true` with a fallback `type: "text"` indicating what went wrong) when upstream TfL API calls fail.
+
+### Adding a New Tool Checklist
+
+1. **Implement in Java**: Add schema, write integration tests in `AppTest.java`, and implement in `App.java`.
+2. **Implement in Node.js**: Add schema, write unit tests in `node/test/server.test.ts`, and implement in `node/src/index.ts`.
+3. **Add Annotations**: Ensure the tool has either `readOnlyHint: true` or `destructiveHint: true`.
+4. **Update Docs**: Add the new tool's description and parameters to `docs/tools.md`.
+
+### Continuous Integration & PR Rules
+
+- **Tests must pass**: Both `./gradlew test` and `npm test` must be passing before any merge.
+- **Branching**: Commit against your designated feature branch (e.g., `claude/tdd-feature...`). Do not force-push to `main`.
+
+### Running & Debugging Locally
+
+- **Node.js**: Navigate to `node/`, run `npm run build`, and debug using the MCP Inspector: `npx @modelcontextprotocol/inspector node dist/index.js`
+- **Java**: Point the MCP Inspector to the compiled jar or run `./gradlew test` with remote debugging attached if needed.
 
 ## Key Constraints
 
