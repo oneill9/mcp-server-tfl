@@ -1,6 +1,6 @@
 # Securing an API Key for the TfL API
 
-The server can run **without an API key**, but queries will be strictly rate-limited to just a handful of anonymous requests per minute per IP address.
+An API key is **strongly recommended** for effective use. Without one, TfL strictly rate-limits anonymous requests to a handful per minute per IP address, which will impact most real-world usage.
 
 Providing the `TFL_APP_KEY` environment variable significantly raises the rate limits, allowing continuous AI usage. Optionally, you can also provide `TFL_APP_ID` alongside `TFL_APP_KEY` if your TfL registration issued you an App ID (older registrations).
 

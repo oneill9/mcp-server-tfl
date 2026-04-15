@@ -21,7 +21,7 @@
       "environmentVariables": [
         {
           "name": "TFL_APP_KEY",
-          "description": "TfL API key — optional, but raises rate limits. Register at https://api-portal.tfl.gov.uk/",
+          "description": "TfL API key — recommended for effective use. Without a key, TfL applies strict rate limits that will impact most real-world usage. Register free at https://api-portal.tfl.gov.uk/",
           "isRequired": false,
           "format": "string",
           "isSecret": true

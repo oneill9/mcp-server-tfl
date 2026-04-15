@@ -24,7 +24,7 @@
     "tfl_app_key": {
       "type": "string",
       "title": "TfL API Key",
-      "description": "Optional — raises rate limits. Register at https://api-portal.tfl.gov.uk/",
+      "description": "Recommended for effective use — without a key, TfL applies strict rate limits that will impact most real-world usage. Register free at https://api-portal.tfl.gov.uk/",
       "sensitive": true,
       "required": false
     }

@@ -52,9 +52,9 @@ Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/mcp-server
 }
 ```
 
-**Step 2 — (Optional) Add a TfL API key**
+**Step 2 — Add a TfL API key (recommended)**
 
-The server works without a key at low rate limits. For heavier use, [register a free key](https://api-portal.tfl.gov.uk/) and pass it via the `TFL_APP_KEY` environment variable:
+Without a key, TfL applies strict rate limits that will impact most real-world usage. [Register a free key](https://api-portal.tfl.gov.uk/) and pass it via the `TFL_APP_KEY` environment variable:
 
 ```json
 "env": { "TFL_APP_KEY": "your_key_here" }
@@ -83,7 +83,7 @@ For full setup details (Java direct, Docker options), see [docs/installation.md]
 
 This server is distributed as a **Desktop extension (MCPB)** using stdio transport. It does not implement OAuth or any server-side authentication.
 
-The TfL API uses a simple API key (`TFL_APP_KEY`) that you supply as an environment variable. The key is **optional** — the server works without one at lower rate limits. No OAuth flow, login, or account is required to use this MCP server.
+The TfL API uses a simple API key (`TFL_APP_KEY`) that you supply as an environment variable. A key is **strongly recommended** — without one, TfL applies strict rate limits that will impact most real-world usage. Registration is free. No OAuth flow, login, or account beyond the TfL portal is required to use this MCP server.
 
 ## Configuration
 
@@ -92,7 +92,7 @@ The TfL API uses a simple API key (`TFL_APP_KEY`) that you supply as an environm
 | `TFL_APP_KEY` | *(none)* | TfL API key — register at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/) |
 | `TFL_APP_ID` | *(none)* | TfL App ID — only needed for older API registrations that issued both an ID and key |
 
-Requests work without an API key but are rate-limited. An app key raises the limit significantly.
+An API key is strongly recommended — without one, TfL's strict rate limits will impact most real-world usage. Registration is free at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
 
 ## Running
 
