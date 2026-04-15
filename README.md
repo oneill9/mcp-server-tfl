@@ -70,16 +70,14 @@ For full setup details (Java direct, Docker options), see [docs/installation.md]
 
 | Tool | Description | TfL Endpoint |
 |------|-------------|--------------|
-| `line_status` | Current status of one or more lines | `GET /Line/{ids}/Status` |
-| `arrivals` | Live arrivals at a stop | `GET /StopPoint/{id}/Arrivals` |
-| `stop_search` | Search for stops by name/query | `GET /StopPoint/Search/{query}` |
-| `disruptions` | Current disruptions by transport mode | `GET /Line/Mode/{modes}/Disruption` |
+| `service_status` | Current status and disruptions by mode | `GET /Line/Mode/{modes}/Status` |
+| `arrivals` | Live arrivals at a stop by name | `GET /StopPoint/{naptan}/Arrivals` |
 | `journey` | Plan a journey between two points | `GET /Journey/JourneyResults/{from}/to/{to}` |
 | `bike_points` | List Santander Cycles docking stations | `GET /BikePoint` |
-| `list_modes` | Get a list of all valid TfL transport modes | `GET /Line/Meta/Modes` |
-| `line_routes` | Ordered sequence of stops along a line | `GET /Line/{id}/Route/Sequence/{direction}` |
-| `crowding` | Live station crowding level | `GET /Crowding/{naptan}/Live` |
-| `fares` | Fare information between two stops | `GET /StopPoint/{id}/FareTo/{targetId}` |
+| `crowding` | Live station crowding level by name | `GET /Crowding/{naptan}/Live` |
+| `fares` | Fare information between two named stops | `GET /StopPoint/{id}/FareTo/{targetId}` |
+
+> **Note:** The server uses the `/StopPoint/Search/{query}` endpoint internally to automatically resolve stop names to NaPTAN IDs for the `arrivals`, `crowding`, and `fares` tools.
 
 ## Authentication
 

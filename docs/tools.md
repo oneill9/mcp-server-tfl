@@ -1,18 +1,19 @@
 # Tools Reference
 
-The TfL MCP Server exposes 10 read-only tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/).
+The TfL MCP Server exposes 6 dynamic tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/). 
+Names of stops are automatically resolved to NaPTAN IDs dynamically.
 
 ---
 
-## `line_status` — Line Status
+## `service_status` — Service Status
 
-Get the current operational status of one or more TfL lines.
+Get the current operational status and disruptions of TfL transport modes.
 
 **Parameters:**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `lines` | string | Yes | Comma-separated line IDs, e.g. `central,victoria,circle,dlr` |
+| `modes` | string | Yes | Comma-separated modes, e.g. `tube,bus,dlr` |
 
 **Example query:** *"Is the Central line running normally?"*
 
@@ -26,13 +27,13 @@ Victoria: Minor Delays — Earlier signal failure at Stockwell
 
 ## `arrivals` — Stop Arrivals
 
-Get live arrival predictions at a TfL stop. Use `stop_search` first to find the stop ID.
+Get live arrival predictions at a TfL stop by its common name.
 
 **Parameters:**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `stopId` | string | Yes | NaPTAN stop ID, e.g. `940GZZLUOXC` |
+| `stopName` | string | Yes | Stop name or search term, e.g. `oxford` |
 
 **Example query:** *"When is the next tube from Oxford Circus?"*
 
@@ -40,46 +41,6 @@ Get live arrival predictions at a TfL stop. Use `stop_search` first to find the 
 ```
 Central → Epping: 2 min (Eastbound - Platform 2)
 Central → Epping: 5 min (Eastbound - Platform 2)
-```
-
----
-
-## `stop_search` — Stop Search
-
-Search for TfL stops by common name or search term.
-
-**Parameters:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `query` | string | Yes | Stop name or search term, e.g. `oxford` |
-
-**Example query:** *"What is the stop ID for Oxford Circus?"*
-
-**Example response:**
-```
-940GZZLUOXC — Oxford Circus Underground Station
-490000173RC — Oxford Circus
-```
-
----
-
-## `disruptions` — Disruptions by Mode
-
-Get current service disruptions for one or more TfL transport modes.
-
-**Parameters:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `modes` | string | Yes | Comma-separated transport modes, e.g. `tube,bus,dlr` |
-
-**Example query:** *"Are there any tube disruptions right now?"*
-
-**Example response:**
-```
-central: Minor delays due to earlier signal failure near Oxford Circus
-jubilee: Good service
 ```
 
 ---
@@ -123,53 +84,15 @@ BikePoints_2 — Phillimore Gardens, Kensington: 0 bikes, 13 empty docks
 
 ---
 
-## `list_modes` — Transport Modes
-
-Get a list of all valid TfL transport modes. Useful for building queries to `disruptions`.
-
-**Parameters:** None
-
-**Example query:** *"What transport modes does TfL support?"*
-
-**Example response:**
-```
-tube, bus, dlr, overground, elizabeth-line, tflrail, national-rail, river-bus, cable-car, tram, cycle-hire
-```
-
----
-
-## `line_routes` — Line Route Sequence
-
-Get the ordered sequence of stops along a TfL line in a given direction.
-
-**Parameters:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `lineId` | string | Yes | Line ID, e.g. `central`, `victoria`, `northern` |
-| `direction` | string | Yes | Direction of travel: `inbound` or `outbound` |
-
-**Example query:** *"What are all the stops on the Central line?"*
-
-**Example response:**
-```
-Central (outbound):
-  Epping Underground Station (940GZZLUEPG)
-  Theydon Bois Underground Station (940GZZLUTHB)
-  Oxford Circus Underground Station (940GZZLUOXC)
-```
-
----
-
 ## `crowding` — Station Crowding
 
-Get live crowding data for a TfL station, showing how busy it is compared to the typical baseline.
+Get live crowding data for a TfL station by its name, showing how busy it is compared to the typical baseline.
 
 **Parameters:**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `naptan` | string | Yes | NaPTAN station ID, e.g. `940GZZLUOXC` |
+| `stopName` | string | Yes | Stop name or search term, e.g. `oxford circus` |
 
 **Example query:** *"How busy is Oxford Circus right now?"*
 
@@ -182,14 +105,14 @@ Get live crowding data for a TfL station, showing how busy it is compared to the
 
 ## `fares` — Fare Finder
 
-Get fare information between two TfL stops, including pay-as-you-go and cash single prices.
+Get fare information between two named TfL stops, including pay-as-you-go and cash single prices.
 
 **Parameters:**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `fromStopId` | string | Yes | Origin NaPTAN stop ID, e.g. `940GZZLUOXC` |
-| `toStopId` | string | Yes | Destination NaPTAN stop ID, e.g. `940GZZLUBND` |
+| `fromName` | string | Yes | Origin stop name, e.g. `oxford circus` |
+| `toName` | string | Yes | Destination stop name, e.g. `bond street` |
 
 **Example query:** *"How much is a tube fare from Oxford Circus to Bond Street?"*
 

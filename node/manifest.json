@@ -31,20 +31,12 @@
   },
   "tools": [
     {
-      "name": "line_status",
-      "description": "Get line status"
+      "name": "service_status",
+      "description": "Get service status by mode (e.g. tube, bus)"
     },
     {
       "name": "arrivals",
-      "description": "Get live arrivals at a stop"
-    },
-    {
-      "name": "stop_search",
-      "description": "Search for stops"
-    },
-    {
-      "name": "disruptions",
-      "description": "Get disruptions by mode"
+      "description": "Get live arrivals at a stop by name"
     },
     {
       "name": "journey",
@@ -55,28 +47,12 @@
       "description": "List bike docking stations"
     },
     {
-      "name": "list_modes",
-      "description": "List transport modes"
-    },
-    {
-      "name": "air_quality",
-      "description": "Get air quality data"
-    },
-    {
-      "name": "road_disruptions",
-      "description": "Get road disruptions"
-    },
-    {
-      "name": "line_routes",
-      "description": "Get stops along a line"
-    },
-    {
       "name": "crowding",
-      "description": "Get station crowding"
+      "description": "Get station crowding by stop name"
     },
     {
       "name": "fares",
-      "description": "Get fare information"
+      "description": "Get fare information between two stops"
     }
   ],
   "icon": "icon.png",

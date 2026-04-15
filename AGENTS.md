@@ -31,7 +31,7 @@ Key TfL API areas (each maps to one or more MCP tools):
 
 ## Architecture
 
-The server has two feature-equivalent implementations: **Java** (Docker/ZIP, also supports HTTP/SSE) and **Node.js** (MCPB Desktop extension). Both expose the same 12 tools with identical response formatting.
+The server has two feature-equivalent implementations: **Java** (Docker/ZIP, also supports HTTP/SSE) and **Node.js** (MCPB Desktop extension). Both expose the same 6 tools with identical response formatting.
 
 ### Java
 
@@ -107,9 +107,9 @@ Tasks required to meet the [Anthropic Connectors Directory](https://docs.anthrop
 
 ### Tool Annotations (Required)
 
-All tools must include `readOnlyHint` or `destructiveHint`. Currently **none of the 9 tools** have these annotations.
+All tools must include `readOnlyHint` or `destructiveHint`. Currently **none of the 6 tools** have these annotations.
 
-- [x] Add `readOnlyHint: true` annotation to all 9 tools (`line_status`, `arrivals`, `stop_search`, `disruptions`, `journey`, `bike_points`, `list_modes`, `air_quality`, `road_disruptions`) — all are read-only queries against the TfL API
+- [x] Add `readOnlyHint: true` annotation to all 6 tools (`service_status`, `arrivals`, `journey`, `bike_points`, `crowding`, `fares`) — all are read-only queries against the TfL API
 - [x] Add tests verifying tool annotations are present (query tool list via MCP client and assert hints exist)
 
 ### Privacy Policy (Required for local connectors)
@@ -132,7 +132,7 @@ OAuth 2.0 is required for authenticated services. TfL uses a simple API key mode
 Current docs are good but need enhancement for reviewer onboarding.
 
 - [x] Add clear "Getting Started" / setup instructions to README aimed at a first-time reviewer unfamiliar with the project
-- [x] Document all 9 tools with human-readable names and descriptions (current `docs/tools.md` is a good start — ensure it's comprehensive and matches submission form fields)
+- [x] Document all 6 tools with human-readable names and descriptions (current `docs/tools.md` is a good start — ensure it's comprehensive and matches submission form fields)
 - [x] Provide a support channel link (e.g. GitHub Issues URL)
 - [x] Prepare step-by-step test account instructions: how to get a TfL API key, configure the server, and verify it works (note: works without key at lower rate limits)
 
@@ -150,7 +150,7 @@ Current docs are good but need enhancement for reviewer onboarding.
 
 ### Testing & Launch Readiness (Required)
 
-- [x] Test the server in Claude Desktop (stdio transport) and verify all 9 tools work end-to-end — covered by StdioContractTest (automated)
+- [x] Test the server in Claude Desktop (stdio transport) and verify all 6 tools work end-to-end — covered by StdioContractTest (automated)
 - [x] Test the server as a remote MCP (HTTP/SSE transport) and verify connectivity — covered by AppTest (automated)
 - [x] Ensure all unit tests pass: `./gradlew test`
 - [x] Ensure contract tests pass: `./gradlew contractTest`
