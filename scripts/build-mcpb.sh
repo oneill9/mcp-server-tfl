@@ -11,10 +11,17 @@ npm ci --silent
 echo "==> Compiling TypeScript..."
 npm run build
 
+echo "==> Pruning dev dependencies..."
+npm prune --production
+
 echo "==> Packing MCPB extension..."
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 mcpb pack "$NODE_DIR" "$OUTPUT_DIR/tfl.mcpb"
 
+echo "==> Restoring dev dependencies..."
+npm ci --silent
+
 echo ""
 echo "Done! MCPB bundle written to $OUTPUT_DIR/tfl.mcpb"
+echo "To test locally, you can double-click the .mcpb file to install it in Claude Desktop."
