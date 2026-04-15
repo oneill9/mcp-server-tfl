@@ -39,7 +39,7 @@ const ANNOTATIONS = {
   openWorldHint: true as const,
 };
 
-const server = new McpServer({ name: "TfL", version: "1.3.0" });
+const server = new McpServer({ name: "TfL", version: "1.3.1" });
 
 // --- arrivals ---
 server.tool(
@@ -282,7 +282,7 @@ server.tool(
 
 // --- start server ---
 async function main() {
-  console.error(`Starting TfL MCP Server v1.3.0...`);
+  console.error(`Starting TfL MCP Server v1.3.1...`);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("TfL MCP Server connected and ready");

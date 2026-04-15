@@ -2,15 +2,19 @@
   "manifest_version": "0.3",
   "name": "tfl",
   "display_name": "Transport for London",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Real-time London transport data via the TfL Unified API",
-  "author": { "name": "oneill9" },
+  "author": {
+    "name": "oneill9"
+  },
   "server": {
     "type": "node",
     "entry_point": "dist/index.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/dist/index.js"],
+      "args": [
+        "${__dirname}/dist/index.js"
+      ],
       "env": {
         "TFL_APP_KEY": "${user_config.tfl_app_key}"
       }
@@ -26,21 +30,61 @@
     }
   },
   "tools": [
-    { "name": "line_status", "description": "Get line status" },
-    { "name": "arrivals", "description": "Get live arrivals at a stop" },
-    { "name": "stop_search", "description": "Search for stops" },
-    { "name": "disruptions", "description": "Get disruptions by mode" },
-    { "name": "journey", "description": "Plan a journey" },
-    { "name": "bike_points", "description": "List bike docking stations" },
-    { "name": "list_modes", "description": "List transport modes" },
-    { "name": "air_quality", "description": "Get air quality data" },
-    { "name": "road_disruptions", "description": "Get road disruptions" },
-    { "name": "line_routes", "description": "Get stops along a line" },
-    { "name": "crowding", "description": "Get station crowding" },
-    { "name": "fares", "description": "Get fare information" }
+    {
+      "name": "line_status",
+      "description": "Get line status"
+    },
+    {
+      "name": "arrivals",
+      "description": "Get live arrivals at a stop"
+    },
+    {
+      "name": "stop_search",
+      "description": "Search for stops"
+    },
+    {
+      "name": "disruptions",
+      "description": "Get disruptions by mode"
+    },
+    {
+      "name": "journey",
+      "description": "Plan a journey"
+    },
+    {
+      "name": "bike_points",
+      "description": "List bike docking stations"
+    },
+    {
+      "name": "list_modes",
+      "description": "List transport modes"
+    },
+    {
+      "name": "air_quality",
+      "description": "Get air quality data"
+    },
+    {
+      "name": "road_disruptions",
+      "description": "Get road disruptions"
+    },
+    {
+      "name": "line_routes",
+      "description": "Get stops along a line"
+    },
+    {
+      "name": "crowding",
+      "description": "Get station crowding"
+    },
+    {
+      "name": "fares",
+      "description": "Get fare information"
+    }
   ],
   "icon": "icon.png",
   "compatibility": {
-    "platforms": ["darwin", "win32", "linux"]
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ]
   }
 }
