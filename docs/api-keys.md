@@ -30,6 +30,6 @@ For **Docker**, pass it as a `-e` flag in `args`:
   "--rm",
   "-e",
   "TFL_APP_KEY=your_primary_key",
-  "ghcr.io/oneill9/mcp-server-tfl:latest"
+  "ghcr.io/oneill9/tfl-mcp-server:latest"
 ]
 ```

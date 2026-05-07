@@ -17,14 +17,14 @@ Add the following to your `mcpServers` object, choosing one of the options below
 
 The lightest option — no Docker or Java required. Just Node.js 20+.
 
-Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/mcp-server-tfl/releases) and install it in Claude Desktop, or add manually:
+Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
 
 ```json
 {
   "mcpServers": {
     "tfl": {
       "command": "npx",
-      "args": ["-y", "@oneill9/mcp-server-tfl"],
+      "args": ["-y", "@oneill9/tfl-mcp-server"],
       "env": {
         "TFL_APP_KEY": "your_api_key_here"
       }
@@ -48,7 +48,7 @@ You don't need Java or Node.js installed. Docker will download and run the conta
         "--rm",
         "-e",
         "TFL_APP_KEY=your_api_key_here",
-        "ghcr.io/oneill9/mcp-server-tfl:latest"
+        "ghcr.io/oneill9/tfl-mcp-server:latest"
       ]
     }
   }
@@ -59,7 +59,7 @@ You don't need Java or Node.js installed. Docker will download and run the conta
 
 If you prefer to run it using the built distribution ZIP attached to GitHub Releases:
 
-1. Download the latest `mcp-server-tfl.zip` from [GitHub Releases](https://github.com/oneill9/mcp-server-tfl/releases).
+1. Download the latest `tfl-mcp-server.zip` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases).
 2. Unzip it somewhere on your machine.
 3. Update your `claude_desktop_config.json`:
 
@@ -67,7 +67,7 @@ If you prefer to run it using the built distribution ZIP attached to GitHub Rele
 {
   "mcpServers": {
     "tfl": {
-      "command": "/path/to/extracted/mcp-server-tfl/bin/mcp-server-tfl",
+      "command": "/path/to/extracted/tfl-mcp-server/bin/tfl-mcp-server",
       "args": [],
       "env": {
         "TFL_APP_KEY": "your_api_key_here"
