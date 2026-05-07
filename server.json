@@ -1,20 +1,20 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.oneill9/mcp-server-tfl",
+  "name": "io.github.oneill9/tfl-mcp-server",
   "description": "Community-built server providing real-time London transport data via the TfL Unified API",
-  "icon": "https://raw.githubusercontent.com/oneill9/mcp-server-tfl/main/docs/logo.svg",
+  "icon": "https://raw.githubusercontent.com/oneill9/tfl-mcp-server/main/docs/logo.svg",
   "repository": {
-    "url": "https://github.com/oneill9/mcp-server-tfl",
+    "url": "https://github.com/oneill9/tfl-mcp-server",
     "source": "github"
   },
   "version": "1.4.0",
   "privacy_policies": [
-    "https://raw.githubusercontent.com/oneill9/mcp-server-tfl/main/PRIVACY.md"
+    "https://raw.githubusercontent.com/oneill9/tfl-mcp-server/main/PRIVACY.md"
   ],
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/oneill9/mcp-server-tfl:1.4.0",
+      "identifier": "ghcr.io/oneill9/tfl-mcp-server:1.4.0",
       "transport": {
         "type": "stdio"
       },

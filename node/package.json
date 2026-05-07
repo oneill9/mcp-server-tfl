@@ -1,5 +1,5 @@
 {
-  "name": "@oneill9/mcp-server-tfl",
+  "name": "@oneill9/tfl-mcp-server",
   "version": "1.4.0",
   "type": "module",
   "main": "dist/index.js",

@@ -185,7 +185,7 @@ jobs:
             "mcpServers": {
               "tfl": {
                 "command": "npx",
-                "args": ["-y", "@oneill9/mcp-server-tfl"]
+                "args": ["-y", "@oneill9/tfl-mcp-server"]
               }
             }
           }
@@ -212,7 +212,7 @@ jobs:
           {
             "mcpServers": {
               "tfl": {
-                "command": "/path/to/mcp-server-tfl/bin/mcp-server-tfl"
+                "command": "/path/to/tfl-mcp-server/bin/tfl-mcp-server"
               }
             }
           }

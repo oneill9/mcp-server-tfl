@@ -9,7 +9,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 | Field | Value |
 |-------|-------|
 | **Name** | TfL MCP Server |
-| **URL / Repository** | https://github.com/oneill9/mcp-server-tfl |
+| **URL / Repository** | https://github.com/oneill9/tfl-mcp-server |
 | **Tagline** | Community-built server — real-time London transport data via the TfL Unified API |
 | **Description** | A community-built MCP server that wraps the Transport for London (TfL) Unified API, giving AI assistants like Claude live access to London transport data. Not affiliated with or endorsed by Transport for London. Ask about tube line status, bus arrivals, journey planning, Santander Cycles availability, road disruptions, air quality, and more — powered by the publicly available TfL API. |
 | **Use cases** | Check whether a specific tube or bus line is running normally; get live arrival times at any London stop; plan a journey between two points; find the nearest Santander Cycles docking station; check for road disruptions on London's A-roads; monitor London air quality. |
@@ -24,7 +24,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 | **Transport protocol** | stdio (Desktop extension / MCPB) |
 | **Auth type** | None (no OAuth). Optional TfL API key via `TFL_APP_KEY` environment variable. |
 | **Read / Write** | Read-only — all 6 tools are read-only queries against the TfL API. No write operations. |
-| **Packages** | `tfl.mcpb` (Node.js MCPB — primary), `ghcr.io/oneill9/mcp-server-tfl:latest` (OCI / Docker) |
+| **Packages** | `tfl.mcpb` (Node.js MCPB — primary), `ghcr.io/oneill9/tfl-mcp-server:latest` (OCI / Docker) |
 
 ---
 
@@ -37,7 +37,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 | **Third-party connections** | TfL Unified API (`api.tfl.gov.uk`). Queries are forwarded to TfL in real time. See [TfL's privacy policy](https://tfl.gov.uk/corporate/privacy-and-cookies/). |
 | **Health data access** | No. |
 | **Data retention** | None. The server holds no state between requests. |
-| **Privacy policy URL** | https://raw.githubusercontent.com/oneill9/mcp-server-tfl/main/PRIVACY.md |
+| **Privacy policy URL** | https://raw.githubusercontent.com/oneill9/tfl-mcp-server/main/PRIVACY.md |
 
 ---
 

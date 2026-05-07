@@ -4,9 +4,9 @@
 
 > **Disclaimer:** This is a community-built project. It is not affiliated with, endorsed by, or connected to Transport for London (TfL). This project consumes the publicly available [TfL Unified API](https://api.tfl.gov.uk/).
 
-[![Build](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/build.yml)
-[![Contract Tests](https://github.com/oneill9/mcp-server-tfl/actions/workflows/contract-tests.yml/badge.svg)](https://github.com/oneill9/mcp-server-tfl/actions/workflows/contract-tests.yml)
-[![GitHub release](https://img.shields.io/github/v/release/oneill9/mcp-server-tfl)](https://github.com/oneill9/mcp-server-tfl/releases)
+[![Build](https://github.com/oneill9/tfl-mcp-server/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/tfl-mcp-server/actions/workflows/build.yml)
+[![Contract Tests](https://github.com/oneill9/tfl-mcp-server/actions/workflows/contract-tests.yml/badge.svg)](https://github.com/oneill9/tfl-mcp-server/actions/workflows/contract-tests.yml)
+[![GitHub release](https://img.shields.io/github/v/release/oneill9/tfl-mcp-server)](https://github.com/oneill9/tfl-mcp-server/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A MCP server that exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) as tools, allowing AI assistants like Claude to query live London transport data.
@@ -26,14 +26,14 @@ Open your Claude Desktop config file:
 
 **Option A: Node.js MCPB (recommended)**
 
-Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/mcp-server-tfl/releases) and install it in Claude Desktop, or add manually:
+Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
 
 ```json
 {
   "mcpServers": {
     "tfl": {
       "command": "npx",
-      "args": ["-y", "@oneill9/mcp-server-tfl"]
+      "args": ["-y", "@oneill9/tfl-mcp-server"]
     }
   }
 }
@@ -46,7 +46,7 @@ Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/mcp-server
   "mcpServers": {
     "tfl": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "ghcr.io/oneill9/mcp-server-tfl:latest"]
+      "args": ["run", "-i", "--rm", "ghcr.io/oneill9/tfl-mcp-server:latest"]
     }
   }
 }
@@ -140,7 +140,7 @@ TFL_APP_KEY=your_key_here ./gradlew contractTest
 
 ## Support
 
-For questions, bug reports, or feature requests, please open an issue on [GitHub Issues](https://github.com/oneill9/mcp-server-tfl/issues).
+For questions, bug reports, or feature requests, please open an issue on [GitHub Issues](https://github.com/oneill9/tfl-mcp-server/issues).
 
 ## Privacy Policy
 
@@ -150,7 +150,7 @@ This MCP server acts as a local proxy between your AI assistant and the [TfL Uni
 - **Usage and storage:** Queries are forwarded to TfL in real time and responses are returned immediately. No query history or results are persisted.
 - **Third-party sharing:** Requests are forwarded to the TfL Unified API (`api.tfl.gov.uk`). See [TfL's privacy policy](https://tfl.gov.uk/corporate/privacy-and-cookies/) for how TfL handles API usage data.
 - **Data retention:** No data is retained. The server holds no state between requests.
-- **Contact:** For privacy concerns, open an issue at <https://github.com/oneill9/mcp-server-tfl/issues>.
+- **Contact:** For privacy concerns, open an issue at <https://github.com/oneill9/tfl-mcp-server/issues>.
 
 The full privacy policy is available at [PRIVACY.md](PRIVACY.md).
 

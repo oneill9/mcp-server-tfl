@@ -1,6 +1,6 @@
 site_name: TfL MCP Server
 site_description: An MCP server providing Transport for London real-time data to AI agents.
-site_url: https://oneill9.github.io/mcp-server-tfl/
+site_url: https://oneill9.github.io/tfl-mcp-server/
 
 theme:
   name: material
@@ -13,8 +13,8 @@ theme:
     - navigation.sections
     - navigation.top
 
-repo_name: oneill9/mcp-server-tfl
-repo_url: https://github.com/oneill9/mcp-server-tfl
+repo_name: oneill9/tfl-mcp-server
+repo_url: https://github.com/oneill9/tfl-mcp-server
 edit_uri: edit/main/docs/
 
 nav:

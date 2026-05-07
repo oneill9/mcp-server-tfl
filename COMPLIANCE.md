@@ -33,7 +33,7 @@ The maintainer commits to the following ongoing obligations:
 | Obligation | How it is met |
 |------------|---------------|
 | **Security** | Dependencies are kept up to date via Dependabot. Security issues reported via GitHub Issues are triaged and patched promptly. Secrets (API keys) are never hardcoded — only supplied via environment variables. |
-| **Responsiveness** | Bug reports, questions, and pull requests are reviewed via [GitHub Issues](https://github.com/oneill9/mcp-server-tfl/issues). |
+| **Responsiveness** | Bug reports, questions, and pull requests are reviewed via [GitHub Issues](https://github.com/oneill9/tfl-mcp-server/issues). |
 | **Accurate descriptions** | The README, tool descriptions, and submission form content are kept in sync with the actual server behaviour. Any change to tool names, capabilities, or data handling is reflected in the documentation before or alongside the code change. |
 
 ## Third-Party API Notice
@@ -42,4 +42,4 @@ This server acts as a proxy to the **TfL (Transport for London) Unified API**. I
 
 ---
 
-For questions about compliance, open an issue at <https://github.com/oneill9/mcp-server-tfl/issues>.
+For questions about compliance, open an issue at <https://github.com/oneill9/tfl-mcp-server/issues>.
