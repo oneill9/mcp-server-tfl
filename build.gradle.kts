@@ -13,6 +13,12 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    main {
+        resources.srcDir("shared/resources")
+    }
+}
+
 dependencies {
     implementation(libs.mcp.sdk)
 
