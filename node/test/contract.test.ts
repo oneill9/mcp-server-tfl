@@ -95,7 +95,7 @@ describe("tools without API key", () => {
     expect(result.isError).toBeFalsy();
     const text = (result.content as any)[0].text;
     expect(text.length).toBeGreaterThan(0);
-  });
+  }, 15000);
 
   it("fares", async () => {
     const result = await client.callTool({ name: "fares", arguments: { fromName: "Oxford Circus Underground Station", toName: "Bond Street Underground Station" } });
