@@ -79,6 +79,16 @@ For full setup details (Java direct, Docker options), see [docs/installation.md]
 
 > **Note:** The server uses the `/StopPoint/Search/{query}` endpoint internally to automatically resolve stop names to NaPTAN IDs for the `arrivals`, `crowding`, and `fares` tools.
 
+### MCP Apps UI
+
+The `service_status` tool includes [MCP Apps](https://modelcontextprotocol.io) support as a progressive enhancement. UI-capable hosts (e.g. Claude Desktop) can render an interactive service status board alongside the text response. Non-UI hosts continue to receive the standard text output.
+
+- The UI is self-contained (inline HTML/CSS, no external assets)
+- Structured JSON data is returned alongside the text fallback
+- No additional setup is required — host support is detected automatically
+
+See [docs/tools.md](docs/tools.md) for full details.
+
 ## Authentication
 
 This server is distributed as a **Desktop extension (MCPB)** using stdio transport. It does not implement OAuth or any server-side authentication.
