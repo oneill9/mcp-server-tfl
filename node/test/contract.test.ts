@@ -71,6 +71,19 @@ describe("tools without API key", () => {
     expect(text.toLowerCase()).toContain("central");
   });
 
+  it("service_status accepts multiple modes and returns structured JSON", async () => {
+    const result = await client.callTool({
+      name: "service_status",
+      arguments: { modes: "tube,overground,elizabeth-line,dlr" },
+    });
+    expect(result.isError).toBeFalsy();
+    const structuredContent = (result.content as any[]).find((c: any) => c.type === "resource");
+    expect(structuredContent).toBeDefined();
+    expect(structuredContent.resource.mimeType).toBe("application/json");
+    expect(structuredContent.resource.text).not.toContain("<html");
+    expect(() => JSON.parse(structuredContent.resource.text)).not.toThrow();
+  }, 15000);
+
   it("bike_points", async () => {
     const result = await client.callTool({ name: "bike_points", arguments: {} });
     expect(result.isError).toBeFalsy();
