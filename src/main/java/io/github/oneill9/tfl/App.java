@@ -3,6 +3,7 @@ package io.github.oneill9.tfl;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.server.McpServer;
+import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServer;
 import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportProvider;
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
@@ -44,6 +45,8 @@ public class App {
     private static final String TFL_APP_ID = System.getenv("TFL_APP_ID");
     private static final HttpClient HTTP = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     private static final ObjectMapper JSON = new ObjectMapper();
+    private static final String SERVICE_STATUS_UI_URI = "ui://tfl/service-status";
+    private static final String MCP_APP_MIME_TYPE = "text/html;profile=mcp-app";
 
     private static final String VERSION = loadVersion();
 
@@ -69,7 +72,20 @@ public class App {
                 .serverInfo("TfL", VERSION)
                 .capabilities(McpSchema.ServerCapabilities.builder()
                         .tools(true)
+                        .resources(false, false)
                         .build())
+                .resources(new McpServerFeatures.SyncResourceSpecification(
+                        McpSchema.Resource.builder()
+                                .uri(SERVICE_STATUS_UI_URI)
+                                .name("Service Status Board")
+                                .description("Live London transport service status board")
+                                .mimeType(MCP_APP_MIME_TYPE)
+                                .build(),
+                        (exchange, request) -> new McpSchema.ReadResourceResult(List.of(
+                                new McpSchema.TextResourceContents(
+                                        SERVICE_STATUS_UI_URI,
+                                        MCP_APP_MIME_TYPE,
+                                        ServiceStatusUi.render())))))
                 .toolCall(
                         McpSchema.Tool.builder()
                                 .name("arrivals")
@@ -104,14 +120,14 @@ public class App {
                                         Map.of("modes", Map.of("type", "string", "description", "Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line,dlr")),
                                         List.of("modes"),
                                         null, null, null))
+                                .meta(uiToolMeta(SERVICE_STATUS_UI_URI))
                                 .annotations(new McpSchema.ToolAnnotations("Service Status", true, false, true, true, null))
                                 .build(),
                         (exchange, request) -> {
                             String modes = request.arguments().get("modes").toString();
                             try {
-                                return McpSchema.CallToolResult.builder()
-                                        .addTextContent(fetchServiceStatus(modes))
-                                        .build();
+                                JsonNode statuses = fetchServiceStatusData(modes);
+                                return serviceStatusResult(statuses);
                             } catch (Exception e) {
                                 return McpSchema.CallToolResult.builder()
                                         .addTextContent("Error fetching service status: " + e.getMessage())
@@ -226,6 +242,12 @@ public class App {
                             }
                         })
                 .build();
+    }
+
+    private static Map<String, Object> uiToolMeta(String resourceUri) {
+        return Map.of(
+                "ui", Map.of("resourceUri", resourceUri),
+                "ui/resourceUri", resourceUri);
     }
 
     /**
@@ -399,8 +421,44 @@ public class App {
         return sb.toString().trim();
     }
 
-    private String fetchServiceStatus(String modes) throws Exception {
-        JsonNode root = httpGet("/Line/Mode/" + encodeSegments(modes) + "/Status");
+    private JsonNode fetchServiceStatusData(String modes) throws Exception {
+        return httpGet("/Line/Mode/" + encodeSegments(modes) + "/Status");
+    }
+
+    private McpSchema.CallToolResult serviceStatusResult(JsonNode statuses) throws Exception {
+        return McpSchema.CallToolResult.builder()
+                .addTextContent(formatServiceStatus(statuses))
+                .addContent(new McpSchema.EmbeddedResource(
+                        null,
+                        new McpSchema.TextResourceContents(
+                                SERVICE_STATUS_UI_URI,
+                                "application/json",
+                                JSON.writeValueAsString(parseLineStatuses(statuses)))))
+                .build();
+    }
+
+    private List<Map<String, Object>> parseLineStatuses(JsonNode root) {
+        var lines = new ArrayList<Map<String, Object>>();
+        for (JsonNode line : root) {
+            var statuses = new ArrayList<Map<String, Object>>();
+            for (JsonNode status : line.path("lineStatuses")) {
+                var item = new java.util.LinkedHashMap<String, Object>();
+                item.put("severity", status.path("statusSeverityDescription").asText());
+                String reason = status.path("reason").asText("");
+                if (!reason.isBlank()) item.put("reason", reason);
+                statuses.add(item);
+            }
+
+            var item = new java.util.LinkedHashMap<String, Object>();
+            item.put("id", line.path("id").asText());
+            item.put("name", line.path("name").asText());
+            item.put("statuses", statuses);
+            lines.add(item);
+        }
+        return lines;
+    }
+
+    private String formatServiceStatus(JsonNode root) {
         var sb = new StringBuilder();
         for (JsonNode line : root) {
             String name = line.path("name").asText();

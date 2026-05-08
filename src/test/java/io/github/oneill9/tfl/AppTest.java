@@ -218,6 +218,12 @@ class AppTest {
         assertNotNull(caps.tools());
     }
 
+    @Test
+    void serverHasResourceCapability() {
+        var caps = client.getServerCapabilities();
+        assertNotNull(caps.resources());
+    }
+
     // --- service_status ---
 
     @Test
@@ -228,12 +234,68 @@ class AppTest {
     }
 
     @Test
+    void serviceStatusToolReferencesUiResource() {
+        var result = client.listTools();
+        var tool = result.tools().stream()
+                .filter(t -> t.name().equals("service_status"))
+                .findFirst()
+                .orElseThrow();
+
+        assertNotNull(tool.meta(), "service_status should have UI metadata");
+        assertEquals("ui://tfl/service-status", tool.meta().get("ui/resourceUri"));
+        @SuppressWarnings("unchecked")
+        var ui = (Map<String, Object>) tool.meta().get("ui");
+        assertEquals("ui://tfl/service-status", ui.get("resourceUri"));
+    }
+
+    @Test
+    void listResourcesContainsServiceStatusUi() {
+        var result = client.listResources();
+        var resource = result.resources().stream()
+                .filter(r -> r.uri().equals("ui://tfl/service-status"))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals("Service Status Board", resource.name());
+        assertEquals("text/html;profile=mcp-app", resource.mimeType());
+    }
+
+    @Test
+    void readServiceStatusUiReturnsHtml() {
+        var result = client.readResource(new McpSchema.ReadResourceRequest("ui://tfl/service-status"));
+        var content = (McpSchema.TextResourceContents) result.contents().getFirst();
+
+        assertEquals("ui://tfl/service-status", content.uri());
+        assertEquals("text/html;profile=mcp-app", content.mimeType());
+        assertTrue(content.text().contains("<title>TfL Service Status</title>"));
+        assertTrue(content.text().contains("data-app=\"service-status\""));
+    }
+
+    @Test
     void serviceStatusReturnsStatusForMode() {
         var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "tube")));
         assertFalse(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.toLowerCase().contains("central"), "Response should mention Central line");
         assertTrue(text.contains("Good Service"), "Response should contain the status");
+    }
+
+    @Test
+    void serviceStatusEmbedsUiDataResource() {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "tube")));
+        assertFalse(result.isError());
+
+        var embedded = result.content().stream()
+                .filter(McpSchema.EmbeddedResource.class::isInstance)
+                .map(McpSchema.EmbeddedResource.class::cast)
+                .findFirst()
+                .orElseThrow();
+        var resource = (McpSchema.TextResourceContents) embedded.resource();
+
+        assertEquals("ui://tfl/service-status", resource.uri());
+        assertEquals("application/json", resource.mimeType());
+        assertTrue(resource.text().contains("\"id\":\"central\""));
+        assertTrue(resource.text().contains("\"severity\":\"Good Service\""));
     }
 
     // --- arrivals ---
