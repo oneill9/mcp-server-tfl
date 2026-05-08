@@ -57,17 +57,35 @@ The server has two feature-equivalent implementations: **Java** (Docker/ZIP, als
 
 We use **red-green TDD** and **Conventional Commits**:
 
+### Commit Messages
+
+Use focused, descriptive Conventional Commit messages. A good commit message:
+
+- Uses an appropriate type and optional scope, such as `feat(java):`, `fix(node):`, `test:`, `docs:`, `refactor:`, or `chore:`
+- Describes the user-visible or maintainer-visible change in the imperative mood
+- Mentions the issue number when the work is tied to one, for example `feat(java): add line status filters (#123)`, or in the commit body
+- Keeps each commit to one logical change so the message can be specific
+- Includes a short body for most commits, explaining why the change exists and any important implementation or verification notes
+- Omits the body only for very small, self-evident changes
+
+Examples:
+
+- `feat(java): expose service status MCP app resource`
+- `refactor(node): load MCP app HTML from shared resources`
+- `test(java): cover MCP app resource metadata (#123)`
+- `docs: clarify release commit requirements`
+
 ### Java
 1. Write a failing test in `AppTest.java` that covers the new tool
 2. Implement the tool in `App.java` (minimal code to pass the test)
 3. Refactor if needed
-4. Commit using conventional commits and include the issue number (e.g., `feat(#123):`, `fix(#123):`, `test(#123):`) and push
+4. Commit using conventional commits and include the issue number in the subject or body when applicable (e.g., `feat(java): add arrivals filtering (#123)`) and push
 
 ### Node.js
 1. Write a failing test in `node/test/server.test.ts` that covers the new tool
 2. Implement the tool in `node/src/index.ts` (minimal code to pass the test)
 3. Refactor if needed
-4. Commit using conventional commits and include the issue number (e.g., `feat(#123):`, `fix(#123):`, `test(#123):`) and push
+4. Commit using conventional commits and include the issue number in the subject or body when applicable (e.g., `feat(node): add arrivals filtering (#123)`) and push
 
 When adding a new tool, implement it in **both** Java and Node.js to keep the implementations in sync.
 
