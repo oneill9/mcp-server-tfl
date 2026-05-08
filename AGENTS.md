@@ -61,13 +61,13 @@ We use **red-green TDD** and **Conventional Commits**:
 1. Write a failing test in `AppTest.java` that covers the new tool
 2. Implement the tool in `App.java` (minimal code to pass the test)
 3. Refactor if needed
-4. Commit using conventional commits (e.g., `feat:`, `fix:`, `test:`) and push
+4. Commit using conventional commits and include the issue number (e.g., `feat(#123):`, `fix(#123):`, `test(#123):`) and push
 
 ### Node.js
 1. Write a failing test in `node/test/server.test.ts` that covers the new tool
 2. Implement the tool in `node/src/index.ts` (minimal code to pass the test)
 3. Refactor if needed
-4. Commit using conventional commits (e.g., `feat:`, `fix:`, `test:`) and push
+4. Commit using conventional commits and include the issue number (e.g., `feat(#123):`, `fix(#123):`, `test(#123):`) and push
 
 When adding a new tool, implement it in **both** Java and Node.js to keep the implementations in sync.
 
