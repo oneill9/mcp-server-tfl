@@ -109,7 +109,7 @@ The MCP tools must present errors gracefully to the calling LLM:
 
 ### Continuous Integration & PR Rules
 
-- **Tests must pass**: Both `./gradlew test` and `npm test` must be passing before any merge.
+- **Tests must pass before push/PR**: Run both `./gradlew test` and `cd node && npm test` before pushing a branch or opening/updating a PR, and keep them passing before any merge.
 - **Branching**: Commit against your designated feature branch (e.g., `claude/tdd-feature...`). Do not force-push to `main`.
 
 ### Running & Debugging Locally
