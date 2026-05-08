@@ -301,3 +301,61 @@ describe("fares", () => {
     expect(text).toContain("2.80");
   });
 });
+
+// --- MCP Apps UI ---
+
+describe("MCP Apps UI for service_status", () => {
+  it("service_status tool advertises ui resource URI in _meta", async () => {
+    const result = await client.listTools();
+    const tool = result.tools.find((t) => t.name === "service_status");
+    expect(tool).toBeDefined();
+    const meta = tool!._meta as any;
+    expect(meta?.ui?.resourceUri).toBe("ui://tfl/service-status");
+  });
+
+  it("resources/list includes ui://tfl/service-status", async () => {
+    const result = await client.listResources();
+    const resource = result.resources.find((r) => r.uri === "ui://tfl/service-status");
+    expect(resource).toBeDefined();
+    expect(resource!.name).toBeTruthy();
+    expect(resource!.mimeType).toBe("text/html;profile=mcp-app");
+  });
+
+  it("resources/read for ui://tfl/service-status returns HTML with correct MIME type", async () => {
+    const result = await client.readResource({ uri: "ui://tfl/service-status" });
+    expect(result.contents.length).toBeGreaterThan(0);
+    const content = result.contents[0] as any;
+    expect(content.mimeType).toBe("text/html;profile=mcp-app");
+    expect(content.text).toContain("<!DOCTYPE html>");
+    expect(content.text).toContain('data-app="service-status"');
+  });
+
+  it("UI HTML is self-contained: no external script or style URLs", async () => {
+    const result = await client.readResource({ uri: "ui://tfl/service-status" });
+    const html = (result.contents[0] as any).text as string;
+    // Should not contain any external <script src="..."> or <link href="..."> pointing to http(s)
+    expect(html).not.toMatch(/<script[^>]+src=["']https?:/i);
+    expect(html).not.toMatch(/<link[^>]+href=["']https?:/i);
+  });
+
+  it("service_status still returns readable text fallback", async () => {
+    const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
+    const textContent = (result.content as any[]).find((c: any) => c.type === "text");
+    expect(textContent).toBeDefined();
+    expect(textContent.text.toLowerCase()).toContain("central");
+    expect(textContent.text).toContain("Good Service");
+  });
+
+  it("service_status returns structured data for UI", async () => {
+    const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
+    const structuredContent = (result.content as any[]).find((c: any) => c.type === "resource");
+    expect(structuredContent).toBeDefined();
+    expect(structuredContent.resource.uri).toBe("ui://tfl/service-status");
+    // The structured text should be parseable JSON with line status data
+    const data = JSON.parse(structuredContent.resource.text);
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
+    expect(data[0]).toHaveProperty("name");
+    expect(data[0]).toHaveProperty("statuses");
+  });
+});

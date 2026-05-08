@@ -17,10 +17,27 @@ Get the current operational status and disruptions of TfL transport modes.
 
 **Example query:** *"Is the Central line running normally?"*
 
-**Example response:**
+**Example response (text fallback):**
 ```
 Central: Good Service
 Victoria: Minor Delays — Earlier signal failure at Stockwell
+```
+
+### MCP Apps UI (Progressive Enhancement)
+
+This tool includes MCP Apps support. UI-capable hosts (e.g. Claude Desktop) can render an interactive service status board. Non-UI hosts continue to receive the text response above.
+
+- **Resource URI:** `ui://tfl/service-status`
+- **MIME type:** `text/html;profile=mcp-app`
+- **Design:** London transport status-board inspired (uses standard line colours, not TfL brand identity)
+
+The tool also returns structured JSON data alongside the text, allowing the UI to render status information without parsing human-readable text:
+
+```json
+[
+  { "id": "central", "name": "Central", "statuses": [{ "severity": "Good Service" }] },
+  { "id": "victoria", "name": "Victoria", "statuses": [{ "severity": "Minor Delays", "reason": "Earlier signal failure" }] }
+]
 ```
 
 ---

@@ -15,6 +15,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.1",
     "@types/node": "^25",
     "typescript": "^6",
     "vitest": "^4"

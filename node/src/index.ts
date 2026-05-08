@@ -1,6 +1,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import {
+  registerAppTool,
+  registerAppResource,
+  RESOURCE_MIME_TYPE,
+} from "@modelcontextprotocol/ext-apps/server";
+import { renderServiceStatusHtml, type LineStatusData } from "./ui.js";
 
 const TFL_BASE = process.env.TFL_BASE_URL ?? "https://api.tfl.gov.uk";
 
@@ -73,26 +79,85 @@ server.tool(
   }
 );
 
+// --- service_status UI resource ---
+
+const SERVICE_STATUS_UI_URI = "ui://tfl/service-status";
+
+registerAppResource(
+  server,
+  "Service Status Board",
+  SERVICE_STATUS_UI_URI,
+  {
+    description: "Live London transport service status board",
+    mimeType: RESOURCE_MIME_TYPE,
+  },
+  async () => ({
+    contents: [
+      {
+        uri: SERVICE_STATUS_UI_URI,
+        mimeType: RESOURCE_MIME_TYPE,
+        text: renderServiceStatusHtml(),
+      },
+    ],
+  })
+);
+
 // --- service_status ---
-server.tool(
+
+/** Parse raw TfL API response into a structured view model. */
+function parseLineStatuses(data: any[]): LineStatusData[] {
+  return data.map((line) => ({
+    id: line.id ?? "",
+    name: line.name ?? "",
+    statuses: (line.lineStatuses ?? []).map((s: any) => ({
+      severity: s.statusSeverityDescription ?? "",
+      reason: s.reason || undefined,
+    })),
+  }));
+}
+
+/** Format structured line statuses into human-readable text. */
+function formatLineStatuses(lines: LineStatusData[]): string {
+  return lines
+    .map((line) => {
+      const parts = line.statuses.map((s) =>
+        s.reason ? `${s.severity} — ${s.reason}` : s.severity
+      );
+      return `${line.name}: ${parts.join("; ")}`;
+    })
+    .join("\n");
+}
+
+registerAppTool(
+  server,
   "service_status",
-  "Get the current operational status and delays for one or more TfL public transport modes.",
-  { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line,dlr") },
-  { ...ANNOTATIONS, title: "Service Status" },
+  {
+    description: "Get the current operational status and delays for one or more TfL public transport modes.",
+    inputSchema: { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line,dlr") },
+    annotations: { ...ANNOTATIONS, title: "Service Status" },
+    _meta: {
+      ui: { resourceUri: SERVICE_STATUS_UI_URI },
+    },
+  },
   async ({ modes }) => {
     try {
       const data: any[] = await httpGet(`/Line/Mode/${encodeSegments(modes)}/Status`);
-      const result = data.map((line) => {
-        const statuses = (line.lineStatuses ?? []).map((s: any) => {
-          const desc = s.statusSeverityDescription ?? "";
-          const reason = s.reason ?? "";
-          return reason ? `${desc} — ${reason}` : desc;
-        });
-        return `${line.name}: ${statuses.join("; ")}`;
-      });
-      return { content: [{ type: "text", text: result.join("\n") }] };
+      const structured = parseLineStatuses(data);
+      return {
+        content: [
+          { type: "text" as const, text: formatLineStatuses(structured) },
+          {
+            type: "resource" as const,
+            resource: {
+              uri: SERVICE_STATUS_UI_URI,
+              mimeType: "application/json",
+              text: JSON.stringify(structured),
+            },
+          },
+        ],
+      };
     } catch (e: any) {
-      return { content: [{ type: "text", text: `Error fetching service status: ${e.message}` }], isError: true };
+      return { content: [{ type: "text" as const, text: `Error fetching service status: ${e.message}` }], isError: true };
     }
   }
 );
