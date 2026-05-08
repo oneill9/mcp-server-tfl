@@ -14,13 +14,20 @@ npm run build
 echo "==> Pruning dev dependencies..."
 npm prune --production
 
+restore_dev_dependencies() {
+  echo "==> Restoring dev dependencies..."
+  npm ci --silent
+}
+
+trap restore_dev_dependencies EXIT
+
 echo "==> Packing MCPB extension..."
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 mcpb pack "$NODE_DIR" "$OUTPUT_DIR/tfl.mcpb"
 
-echo "==> Restoring dev dependencies..."
-npm ci --silent
+trap - EXIT
+restore_dev_dependencies
 
 echo ""
 echo "Done! MCPB bundle written to $OUTPUT_DIR/tfl.mcpb"
