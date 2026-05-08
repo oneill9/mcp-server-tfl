@@ -4,8 +4,6 @@
 
 > **Disclaimer:** This is a community-built project. It is not affiliated with, endorsed by, or connected to Transport for London (TfL). This project consumes the publicly available [TfL Unified API](https://api.tfl.gov.uk/).
 
-[![Build](https://github.com/oneill9/tfl-mcp-server/actions/workflows/build.yml/badge.svg)](https://github.com/oneill9/tfl-mcp-server/actions/workflows/build.yml)
-[![Contract Tests](https://github.com/oneill9/tfl-mcp-server/actions/workflows/contract-tests.yml/badge.svg)](https://github.com/oneill9/tfl-mcp-server/actions/workflows/contract-tests.yml)
 [![GitHub release](https://img.shields.io/github/v/release/oneill9/tfl-mcp-server)](https://github.com/oneill9/tfl-mcp-server/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
