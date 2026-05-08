@@ -48,6 +48,15 @@ const STUBS: Record<string, { status: number; body: any }> = {
       { id: "victoria", name: "Victoria", lineStatuses: [{ statusSeverityDescription: "Minor Delays", reason: "Earlier signal failure" }] },
     ],
   },
+  "/Line/Mode/tube,overground,elizabeth-line,dlr/Status": {
+    status: 200,
+    body: [
+      { id: "central", name: "Central", lineStatuses: [{ statusSeverityDescription: "Good Service", reason: "" }] },
+      { id: "london-overground", name: "London Overground", lineStatuses: [{ statusSeverityDescription: "Good Service", reason: "" }] },
+      { id: "elizabeth", name: "Elizabeth line", lineStatuses: [{ statusSeverityDescription: "Good Service", reason: "" }] },
+      { id: "dlr", name: "DLR", lineStatuses: [{ statusSeverityDescription: "Good Service", reason: "" }] },
+    ],
+  },
   "/Line/Mode/unknown-mode/Status": { status: 400, body: "" },
   "/Line/Meta/Modes": {
     status: 200,
@@ -213,6 +222,32 @@ describe("tool annotations", () => {
 // --- service_status ---
 
 describe("service_status", () => {
+  it("advertises a strict input schema", async () => {
+    const result = await client.listTools();
+    const tool = result.tools.find((t) => t.name === "service_status");
+    expect(tool).toBeDefined();
+    expect(tool!.inputSchema).toMatchObject({
+      type: "object",
+      properties: {
+        modes: {
+          type: "string",
+          description: "Comma-separated TfL modes, e.g. tube,bus,overground,elizabeth-line,dlr",
+          enum: [
+            "tube",
+            "bus",
+            "overground",
+            "elizabeth-line",
+            "dlr",
+            "tube,bus",
+            "tube,overground,elizabeth-line,dlr",
+          ],
+        },
+      },
+      required: ["modes"],
+      additionalProperties: false,
+    });
+  });
+
   it("returns status for tube mode", async () => {
     const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
     const text = (result.content as any)[0].text;
@@ -220,11 +255,24 @@ describe("service_status", () => {
     expect(text).toContain("Good Service");
   });
 
+  it("returns structured JSON for smoke inputs", async () => {
+    for (const modes of ["tube", "tube,overground,elizabeth-line,dlr"]) {
+      const result = await client.callTool({ name: "service_status", arguments: { modes } });
+      expect(result.isError).toBeFalsy();
+      const structuredContent = (result.content as any[]).find((c: any) => c.type === "resource");
+      expect(structuredContent).toBeDefined();
+      expect(structuredContent.resource.mimeType).toBe("application/json");
+      expect(structuredContent.resource.text).not.toContain("<html");
+      expect(() => JSON.parse(structuredContent.resource.text)).not.toThrow();
+    }
+  });
+
   it("returns error on 400", async () => {
     const result = await client.callTool({ name: "service_status", arguments: { modes: "unknown-mode" } });
     expect(result.isError).toBe(true);
     const text = (result.content as any)[0].text;
-    expect(text).toContain("400");
+    expect(text).toContain("Invalid arguments for tool service_status");
+    expect(text).toContain("Invalid option");
   });
 });
 

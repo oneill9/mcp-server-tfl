@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -35,6 +36,18 @@ class AppTest {
                                 [
                                   {"id":"central","name":"Central","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
                                   {"id":"victoria","name":"Victoria","lineStatuses":[{"statusSeverityDescription":"Minor Delays","reason":"Earlier signal failure"}]}
+                                ]
+                                """)));
+
+        wireMock.stubFor(get(urlPathMatching("/Line/Mode/tube,overground,elizabeth-line,dlr/Status"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                [
+                                  {"id":"central","name":"Central","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
+                                  {"id":"london-overground","name":"London Overground","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
+                                  {"id":"elizabeth","name":"Elizabeth line","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
+                                  {"id":"dlr","name":"DLR","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]}
                                 ]
                                 """)));
 
@@ -249,6 +262,34 @@ class AppTest {
     }
 
     @Test
+    void serviceStatusToolHasStrictInputSchema() {
+        var result = client.listTools();
+        var tool = result.tools().stream()
+                .filter(t -> t.name().equals("service_status"))
+                .findFirst()
+                .orElseThrow();
+
+        var schema = tool.inputSchema();
+        assertEquals("object", schema.type());
+        assertEquals(List.of("modes"), schema.required());
+        assertEquals(Boolean.FALSE, schema.additionalProperties());
+
+        @SuppressWarnings("unchecked")
+        var modes = (Map<String, Object>) schema.properties().get("modes");
+        assertEquals("string", modes.get("type"));
+        assertEquals("Comma-separated TfL modes, e.g. tube,bus,overground,elizabeth-line,dlr",
+                modes.get("description"));
+        assertEquals(List.of(
+                "tube",
+                "bus",
+                "overground",
+                "elizabeth-line",
+                "dlr",
+                "tube,bus",
+                "tube,overground,elizabeth-line,dlr"), modes.get("enum"));
+    }
+
+    @Test
     void listResourcesContainsServiceStatusUi() {
         var result = client.listResources();
         var resource = result.resources().stream()
@@ -296,6 +337,15 @@ class AppTest {
         assertEquals("application/json", resource.mimeType());
         assertTrue(resource.text().contains("\"id\":\"central\""));
         assertTrue(resource.text().contains("\"severity\":\"Good Service\""));
+    }
+
+    @Test
+    void serviceStatusSmokeInputsReturnStructuredJson() {
+        assertStructuredServiceStatusJson("tube");
+        assertStructuredServiceStatusJson("tube,overground,elizabeth-line,dlr");
+
+        wireMock.verify(getRequestedFor(urlPathEqualTo("/Line/Mode/tube/Status")));
+        wireMock.verify(getRequestedFor(urlPathEqualTo("/Line/Mode/tube,overground,elizabeth-line,dlr/Status")));
     }
 
     // --- arrivals ---
@@ -432,7 +482,7 @@ class AppTest {
         var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "unknown-mode")));
         assertTrue(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertTrue(text.contains("400"), "Error message should mention the HTTP status code");
+        assertTrue(text.contains("must be one of"), "Error message should mention the schema validation failure");
     }
 
     @Test
@@ -441,5 +491,21 @@ class AppTest {
         assertTrue(result.isError());
         var text = ((McpSchema.TextContent) result.content().getFirst()).text();
         assertTrue(text.contains("No stop found"), "Error message should mention No stop found");
+    }
+
+    private static void assertStructuredServiceStatusJson(String modes) {
+        var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", modes)));
+        assertFalse(result.isError(), "service_status should accept " + modes);
+
+        var embedded = result.content().stream()
+                .filter(McpSchema.EmbeddedResource.class::isInstance)
+                .map(McpSchema.EmbeddedResource.class::cast)
+                .findFirst()
+                .orElseThrow();
+        var resource = (McpSchema.TextResourceContents) embedded.resource();
+
+        assertEquals("application/json", resource.mimeType());
+        assertFalse(resource.text().contains("<html"), "Structured data should not be HTML");
+        assertDoesNotThrow(() -> new com.fasterxml.jackson.databind.ObjectMapper().readTree(resource.text()));
     }
 }

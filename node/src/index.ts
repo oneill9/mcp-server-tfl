@@ -45,7 +45,57 @@ const ANNOTATIONS = {
   openWorldHint: true as const,
 };
 
+const SERVICE_STATUS_MODES = [
+  "tube",
+  "bus",
+  "overground",
+  "elizabeth-line",
+  "dlr",
+  "tube,bus",
+  "tube,overground,elizabeth-line,dlr",
+] as const;
+const SERVICE_STATUS_MODES_DESCRIPTION =
+  "Comma-separated TfL modes, e.g. tube,bus,overground,elizabeth-line,dlr";
+const SERVICE_STATUS_LOG_SCHEMA = {
+  type: "object",
+  properties: {
+    modes: {
+      type: "string",
+      description: SERVICE_STATUS_MODES_DESCRIPTION,
+      enum: SERVICE_STATUS_MODES,
+    },
+  },
+  required: ["modes"],
+  additionalProperties: false,
+};
+type ServiceStatusModes = (typeof SERVICE_STATUS_MODES)[number];
+type ServiceStatusArgs = { modes: ServiceStatusModes };
+const SERVICE_STATUS_INPUT_SCHEMA = z
+  .object({
+    modes: z.enum(SERVICE_STATUS_MODES).describe(SERVICE_STATUS_MODES_DESCRIPTION),
+  })
+  .strict();
+
 const server = new McpServer({ name: "TfL", version: "1.4.0" });
+
+function logToolCall(
+  toolName: string,
+  path: string | null,
+  rawArgs: unknown,
+  inputSchema: unknown,
+  validationError?: string
+): void {
+  console.error(
+    "Inbound MCP tool call:",
+    JSON.stringify({
+      tool: toolName,
+      path: path ?? "<not resolved>",
+      rawArgs,
+      inputSchema,
+      validationError: validationError ?? null,
+    })
+  );
+}
 
 async function resolveStopName(query: string): Promise<string> {
   const data = await httpGet(`/StopPoint/Search/${encodePath(query)}`);
@@ -133,15 +183,18 @@ registerAppTool(
   "service_status",
   {
     description: "Get the current operational status and delays for one or more TfL public transport modes.",
-    inputSchema: { modes: z.string().describe("Comma-separated transport modes, e.g. tube,bus,overground,elizabeth-line,dlr") },
+    inputSchema: SERVICE_STATUS_INPUT_SCHEMA,
     annotations: { ...ANNOTATIONS, title: "Service Status" },
     _meta: {
       ui: { resourceUri: SERVICE_STATUS_UI_URI },
     },
   },
-  async ({ modes }) => {
+  async (args: ServiceStatusArgs) => {
+    const { modes } = args;
+    const path = `/Line/Mode/${encodeSegments(modes)}/Status`;
+    logToolCall("service_status", path, { modes }, SERVICE_STATUS_LOG_SCHEMA);
     try {
-      const data: any[] = await httpGet(`/Line/Mode/${encodeSegments(modes)}/Status`);
+      const data: any[] = await httpGet(path);
       const structured = parseLineStatuses(data);
       return {
         content: [
@@ -157,6 +210,7 @@ registerAppTool(
         ],
       };
     } catch (e: any) {
+      logToolCall("service_status", path, { modes }, SERVICE_STATUS_LOG_SCHEMA, e.message);
       return { content: [{ type: "text" as const, text: `Error fetching service status: ${e.message}` }], isError: true };
     }
   }
