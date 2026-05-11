@@ -24,12 +24,12 @@ Open your Claude Desktop config file:
 
 **Option A: Node.js MCPB (recommended)**
 
-Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
+Download `tfl-mcp-server.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
 
 ```json
 {
   "mcpServers": {
-    "tfl": {
+    "tfl-mcp-server": {
       "command": "npx",
       "args": ["-y", "@oneill9/tfl-mcp-server"]
     }
@@ -42,7 +42,7 @@ Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-se
 ```json
 {
   "mcpServers": {
-    "tfl": {
+    "tfl-mcp-server": {
       "command": "docker",
       "args": ["run", "-i", "--rm", "ghcr.io/oneill9/tfl-mcp-server:latest"]
     }

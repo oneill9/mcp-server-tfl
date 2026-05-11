@@ -2,7 +2,7 @@
 
 There are three ways to run the TfL MCP server: **Node.js MCPB** (recommended), **Docker**, or **Java direct**.
 
-Both the Node.js and Java implementations expose the same 12 tools with identical behaviour — choose whichever fits your environment.
+Both the Node.js and Java implementations expose the same 6 tools with identical behaviour — choose whichever fits your environment.
 
 ## Claude Desktop Configuration
 
@@ -17,12 +17,12 @@ Add the following to your `mcpServers` object, choosing one of the options below
 
 The lightest option — no Docker or Java required. Just Node.js 20+.
 
-Download `tfl.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
+Download `tfl-mcp-server.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
 
 ```json
 {
   "mcpServers": {
-    "tfl": {
+    "tfl-mcp-server": {
       "command": "npx",
       "args": ["-y", "@oneill9/tfl-mcp-server"],
       "env": {
@@ -40,7 +40,7 @@ You don't need Java or Node.js installed. Docker will download and run the conta
 ```json
 {
   "mcpServers": {
-    "tfl": {
+    "tfl-mcp-server": {
       "command": "docker",
       "args": [
         "run",
@@ -66,7 +66,7 @@ If you prefer to run it using the built distribution ZIP attached to GitHub Rele
 ```json
 {
   "mcpServers": {
-    "tfl": {
+    "tfl-mcp-server": {
       "command": "/path/to/extracted/tfl-mcp-server/bin/tfl-mcp-server",
       "args": [],
       "env": {

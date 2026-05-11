@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.3",
-  "name": "tfl",
-  "display_name": "Transport for London",
-  "version": "1.5.0",
+  "name": "tfl-mcp-server",
+  "display_name": "TfL MCP Server",
+  "version": "1.5.1",
   "description": "Real-time London transport data via the TfL Unified API",
   "author": {
     "name": "oneill9"

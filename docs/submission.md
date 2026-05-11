@@ -24,7 +24,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 | **Transport protocol** | stdio (Desktop extension / MCPB) |
 | **Auth type** | None (no OAuth). Optional TfL API key via `TFL_APP_KEY` environment variable. |
 | **Read / Write** | Read-only — all 6 tools are read-only queries against the TfL API. No write operations. |
-| **Packages** | `tfl.mcpb` (Node.js MCPB — primary), `ghcr.io/oneill9/tfl-mcp-server:latest` (OCI / Docker) |
+| **Packages** | `tfl-mcp-server.mcpb` (Node.js MCPB — primary), `ghcr.io/oneill9/tfl-mcp-server:latest` (OCI / Docker) |
 
 ---
 

@@ -24,11 +24,11 @@ trap restore_dev_dependencies EXIT
 echo "==> Packing MCPB extension..."
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
-mcpb pack "$NODE_DIR" "$OUTPUT_DIR/tfl.mcpb"
+mcpb pack "$NODE_DIR" "$OUTPUT_DIR/tfl-mcp-server.mcpb"
 
 trap - EXIT
 restore_dev_dependencies
 
 echo ""
-echo "Done! MCPB bundle written to $OUTPUT_DIR/tfl.mcpb"
+echo "Done! MCPB bundle written to $OUTPUT_DIR/tfl-mcp-server.mcpb"
 echo "To test locally, you can double-click the .mcpb file to install it in Claude Desktop."
