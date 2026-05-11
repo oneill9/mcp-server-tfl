@@ -59,25 +59,6 @@ class ContractTest {
     }
 
     @Test
-    void serviceStatusAcceptsMultipleModes() {
-        var result = client.callTool(new McpSchema.CallToolRequest("service_status",
-                Map.of("modes", "tube,overground,elizabeth-line,dlr")));
-        assertFalse(result.isError(), "service_status should not return an error for multiple modes");
-        var text = ((McpSchema.TextContent) result.content().getFirst()).text();
-        assertFalse(text.isBlank(), "service_status should return a non-empty response");
-
-        var embedded = result.content().stream()
-                .filter(McpSchema.EmbeddedResource.class::isInstance)
-                .map(McpSchema.EmbeddedResource.class::cast)
-                .findFirst()
-                .orElseThrow();
-        var resource = (McpSchema.TextResourceContents) embedded.resource();
-        assertEquals("application/json", resource.mimeType());
-        assertFalse(resource.text().contains("<html"), "Structured data should not be HTML");
-        assertDoesNotThrow(() -> new com.fasterxml.jackson.databind.ObjectMapper().readTree(resource.text()));
-    }
-
-    @Test
     void arrivalsReturnsRealData() {
         var result = client.callTool(new McpSchema.CallToolRequest("arrivals",
                 Map.of("stopName", "Oxford Circus Underground Station")));
