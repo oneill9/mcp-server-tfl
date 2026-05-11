@@ -9,7 +9,7 @@ on:
     types: [ published ]
 
 jobs:
-  contract-tests:
+  contract-tests-java:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +23,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Run contract tests
+      - name: Run Java contract tests
         run: ./gradlew contractTest
         env:
           TFL_APP_KEY: ${{ secrets.TFL_APP_KEY }}
@@ -40,7 +40,7 @@ jobs:
           cache: npm
           cache-dependency-path: node/package-lock.json
 
-      - name: Run contract tests
+      - name: Run Node contract tests
         run: cd node && npm ci && npm run build && npm run contractTest
         env:
           TFL_APP_KEY: ${{ secrets.TFL_APP_KEY }}
