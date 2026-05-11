@@ -7,13 +7,13 @@ Names of stops are automatically resolved to NaPTAN IDs dynamically.
 
 ## `service_status` — Service Status
 
-Get the current operational status and disruptions of TfL transport modes.
+Get the current operational status and disruptions for London Underground lines.
 
 **Parameters:**
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `modes` | string | Yes | Comma-separated modes, e.g. `tube,bus,dlr` |
+| `modes` | string | Yes | Currently fixed to `tube` |
 
 **Example query:** *"Is the Central line running normally?"*
 

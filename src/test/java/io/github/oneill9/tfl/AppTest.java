@@ -39,18 +39,6 @@ class AppTest {
                                 ]
                                 """)));
 
-        wireMock.stubFor(get(urlPathMatching("/Line/Mode/tube,overground,elizabeth-line,dlr/Status"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("""
-                                [
-                                  {"id":"central","name":"Central","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
-                                  {"id":"london-overground","name":"London Overground","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
-                                  {"id":"elizabeth","name":"Elizabeth line","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]},
-                                  {"id":"dlr","name":"DLR","lineStatuses":[{"statusSeverityDescription":"Good Service","reason":""}]}
-                                ]
-                                """)));
-
         wireMock.stubFor(get(urlPathMatching("/StopPoint/940GZZLUOXC/Arrivals"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -277,16 +265,9 @@ class AppTest {
         @SuppressWarnings("unchecked")
         var modes = (Map<String, Object>) schema.properties().get("modes");
         assertEquals("string", modes.get("type"));
-        assertEquals("Comma-separated TfL modes, e.g. tube,bus,overground,elizabeth-line,dlr",
+        assertEquals("TfL mode to query. Currently only tube is supported.",
                 modes.get("description"));
-        assertEquals(List.of(
-                "tube",
-                "bus",
-                "overground",
-                "elizabeth-line",
-                "dlr",
-                "tube,bus",
-                "tube,overground,elizabeth-line,dlr"), modes.get("enum"));
+        assertEquals(List.of("tube"), modes.get("enum"));
     }
 
     @Test
@@ -342,10 +323,8 @@ class AppTest {
     @Test
     void serviceStatusSmokeInputsReturnStructuredJson() {
         assertStructuredServiceStatusJson("tube");
-        assertStructuredServiceStatusJson("tube,overground,elizabeth-line,dlr");
 
         wireMock.verify(getRequestedFor(urlPathEqualTo("/Line/Mode/tube/Status")));
-        wireMock.verify(getRequestedFor(urlPathEqualTo("/Line/Mode/tube,overground,elizabeth-line,dlr/Status")));
     }
 
     // --- arrivals ---

@@ -49,14 +49,7 @@ public class App {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String SERVICE_STATUS_UI_URI = "ui://tfl/service-status";
     private static final String MCP_APP_MIME_TYPE = "text/html;profile=mcp-app";
-    private static final List<String> SERVICE_STATUS_MODES = List.of(
-            "tube",
-            "bus",
-            "overground",
-            "elizabeth-line",
-            "dlr",
-            "tube,bus",
-            "tube,overground,elizabeth-line,dlr");
+    private static final List<String> SERVICE_STATUS_MODES = List.of("tube");
 
     private static final String VERSION = loadVersion();
 
@@ -286,7 +279,7 @@ public class App {
     private static McpSchema.JsonSchema serviceStatusSchema() {
         var modes = new LinkedHashMap<String, Object>();
         modes.put("type", "string");
-        modes.put("description", "Comma-separated TfL modes, e.g. tube,bus,overground,elizabeth-line,dlr");
+        modes.put("description", "TfL mode to query. Currently only tube is supported.");
         modes.put("enum", SERVICE_STATUS_MODES);
         return new McpSchema.JsonSchema(
                 "object",

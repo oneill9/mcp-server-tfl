@@ -45,17 +45,9 @@ const ANNOTATIONS = {
   openWorldHint: true as const,
 };
 
-const SERVICE_STATUS_MODES = [
-  "tube",
-  "bus",
-  "overground",
-  "elizabeth-line",
-  "dlr",
-  "tube,bus",
-  "tube,overground,elizabeth-line,dlr",
-] as const;
+const SERVICE_STATUS_MODES = ["tube"] as const;
 const SERVICE_STATUS_MODES_DESCRIPTION =
-  "Comma-separated TfL modes, e.g. tube,bus,overground,elizabeth-line,dlr";
+  "TfL mode to query. Currently only tube is supported.";
 const SERVICE_STATUS_LOG_SCHEMA = {
   type: "object",
   properties: {
