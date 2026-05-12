@@ -1,0 +1,20 @@
+{
+  "name": "tfl-mcp-server-plugins",
+  "interface": {
+    "displayName": "TfL MCP Server Plugins"
+  },
+  "plugins": [
+    {
+      "name": "tfl-mcp-server",
+      "source": {
+        "source": "local",
+        "path": "./../../codex-plugin"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Travel"
+    }
+  ]
+}

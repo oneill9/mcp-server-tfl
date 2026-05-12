@@ -1,0 +1,35 @@
+{
+  "name": "tfl-mcp-server",
+  "version": "1.5.1",
+  "description": "Real-time London transport data — service status, arrivals, journey planning, fares, crowding, and bike points via the TfL Unified API.",
+  "author": {
+    "name": "oneill9",
+    "url": "https://github.com/oneill9"
+  },
+  "homepage": "https://github.com/oneill9/tfl-mcp-server",
+  "repository": "https://github.com/oneill9/tfl-mcp-server",
+  "license": "MIT",
+  "keywords": ["tfl", "london", "transport", "mcp", "travel", "tube", "bus"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "TfL MCP Server",
+    "shortDescription": "Real-time London transport data via the TfL API",
+    "longDescription": "Query live London transport data including service status, train and bus arrivals, journey planning, fares, station crowding, and Santander Cycles availability. Powered by the TfL Unified API.",
+    "developerName": "oneill9",
+    "category": "Travel",
+    "capabilities": ["Read"],
+    "websiteURL": "https://github.com/oneill9/tfl-mcp-server",
+    "privacyPolicyURL": "https://raw.githubusercontent.com/oneill9/tfl-mcp-server/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/oneill9/tfl-mcp-server/blob/main/LICENSE",
+    "defaultPrompt": [
+      "Is the Central line running normally?",
+      "When is the next bus from Oxford Circus?",
+      "How do I get from King's Cross to Canary Wharf?",
+      "How much is the tube fare from Oxford Circus to Bond Street?"
+    ],
+    "brandColor": "#0019A8",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.svg"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "tfl-mcp-server": {
+    "command": "node",
+    "args": ["${PLUGIN_DIR}/../node/dist/index.js"],
+    "env": {
+      "TFL_APP_KEY": "${TFL_APP_KEY}"
+    }
+  }
+}
