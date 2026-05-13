@@ -1,4 +1,4 @@
 test/
-src/
+/src/
 tsconfig.json
 .mcpbignore
