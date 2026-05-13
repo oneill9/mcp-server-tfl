@@ -361,6 +361,14 @@ describe("MCP Apps UI for service_status", () => {
     expect(content.text).toContain('data-app="service-status"');
   });
 
+  it("service status UI keeps line labels on a fixed column grid", async () => {
+    const result = await client.readResource({ uri: "ui://tfl/service-status" });
+    const html = (result.contents[0] as any).text as string;
+    expect(html).toContain("--line-name-width:clamp");
+    expect(html).toContain("flex:0 0 var(--line-name-width)");
+    expect(html).not.toContain("min-width:120px");
+  });
+
   it("UI HTML is self-contained: no external script or style URLs", async () => {
     const result = await client.readResource({ uri: "ui://tfl/service-status" });
     const html = (result.contents[0] as any).text as string;

@@ -294,6 +294,16 @@ class AppTest {
     }
 
     @Test
+    void serviceStatusUiKeepsLineLabelsOnFixedColumnGrid() {
+        var result = client.readResource(new McpSchema.ReadResourceRequest("ui://tfl/service-status"));
+        var content = (McpSchema.TextResourceContents) result.contents().getFirst();
+
+        assertTrue(content.text().contains("--line-name-width:clamp"));
+        assertTrue(content.text().contains("flex:0 0 var(--line-name-width)"));
+        assertFalse(content.text().contains("min-width:120px"));
+    }
+
+    @Test
     void serviceStatusReturnsStatusForMode() {
         var result = client.callTool(new McpSchema.CallToolRequest("service_status", Map.of("modes", "tube")));
         assertFalse(result.isError());

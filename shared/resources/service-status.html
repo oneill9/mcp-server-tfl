@@ -26,6 +26,7 @@ body{
 .board{
   max-width:540px;
   margin:0 auto;
+  --line-name-width:clamp(144px,34%,178px);
 }
 h1{
   font-size:1.15rem;
@@ -46,14 +47,18 @@ h1{
 }
 .line-row:hover{transform:scale(1.01)}
 .line-name{
-  min-width:120px;
+  flex:0 0 var(--line-name-width);
+  width:var(--line-name-width);
+  min-width:0;
   padding:12px 14px;
   font-weight:700;
   font-size:.88rem;
+  line-height:1.15;
   background:var(--line-bg);
   color:var(--line-fg);
   display:flex;
   align-items:center;
+  overflow-wrap:anywhere;
 }
 .line-status{
   flex:1;
