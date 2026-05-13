@@ -137,14 +137,23 @@ function renderLines(lines) {
 function handleResult(result) {
   const res = result?.content?.find(c => c.type === "resource");
   if (!res?.resource?.text) return;
-  try { renderLines(JSON.parse(res.resource.text)); } catch { /* ignore */ }
+  try {
+    renderLines(JSON.parse(res.resource.text));
+    hasRenderedResult = true;
+    notifySizeChanged();
+  } catch { /* ignore */ }
 }
 
 // Minimal MCP Apps postMessage client
 let nextId = 1;
 const pending = {};
+let hasRenderedResult = false;
 
 function send(msg) { window.parent.postMessage(msg, "*"); }
+
+function notify(method, params = {}) {
+  send({ jsonrpc: "2.0", method, params });
+}
 
 function request(method, params) {
   return new Promise((resolve, reject) => {
@@ -152,6 +161,18 @@ function request(method, params) {
     pending[id] = { resolve, reject };
     send({ jsonrpc: "2.0", id, method, params });
   });
+}
+
+let lastSize = { width: 0, height: 0 };
+
+function notifySizeChanged() {
+  const body = document.body;
+  const root = document.documentElement;
+  const width = Math.ceil(Math.max(body.scrollWidth, root.scrollWidth, root.clientWidth));
+  const height = Math.ceil(Math.max(body.scrollHeight, root.scrollHeight, root.clientHeight, 1));
+  if (width === lastSize.width && height === lastSize.height) return;
+  lastSize = { width, height };
+  notify("ui/notifications/size-changed", { width, height });
 }
 
 window.addEventListener("message", event => {
@@ -173,6 +194,15 @@ async function init() {
       appCapabilities: {},
       protocolVersion: "2026-01-26",
     });
+    notify("ui/notifications/initialized");
+    notifySizeChanged();
+    if ("ResizeObserver" in window) {
+      const observer = new ResizeObserver(notifySizeChanged);
+      observer.observe(document.documentElement);
+      observer.observe(document.body);
+    }
+    await new Promise(resolve => setTimeout(resolve, 150));
+    if (hasRenderedResult) return;
     const result = await request("tools/call", {
       name: "service_status",
       arguments: { modes: "tube" },

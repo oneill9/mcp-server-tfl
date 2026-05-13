@@ -174,6 +174,7 @@ registerAppTool(
   server,
   "service_status",
   {
+    title: "Service Status",
     description: "Get the current operational status and delays for one or more TfL public transport modes.",
     inputSchema: SERVICE_STATUS_INPUT_SCHEMA,
     annotations: { ...ANNOTATIONS, title: "Service Status" },

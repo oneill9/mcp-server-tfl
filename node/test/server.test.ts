@@ -338,8 +338,10 @@ describe("MCP Apps UI for service_status", () => {
     const result = await client.listTools();
     const tool = result.tools.find((t) => t.name === "service_status");
     expect(tool).toBeDefined();
+    expect(tool!.title).toBe("Service Status");
     const meta = tool!._meta as any;
     expect(meta?.ui?.resourceUri).toBe("ui://tfl/service-status");
+    expect(meta?.["ui/resourceUri"]).toBe("ui://tfl/service-status");
   });
 
   it("resources/list includes ui://tfl/service-status", async () => {
@@ -365,6 +367,14 @@ describe("MCP Apps UI for service_status", () => {
     // Should not contain any external <script src="..."> or <link href="..."> pointing to http(s)
     expect(html).not.toMatch(/<script[^>]+src=["']https?:/i);
     expect(html).not.toMatch(/<link[^>]+href=["']https?:/i);
+  });
+
+  it("UI HTML notifies Claude when initialized and sized", async () => {
+    const result = await client.readResource({ uri: "ui://tfl/service-status" });
+    const html = (result.contents[0] as any).text as string;
+    expect(html).toContain("ui/notifications/initialized");
+    expect(html).toContain("ui/notifications/size-changed");
+    expect(html).toContain("ResizeObserver");
   });
 
   it("service_status still returns readable text fallback", async () => {
