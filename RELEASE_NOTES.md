@@ -1,6 +1,7 @@
-## What's Changed in v1.5.1
+## What's Changed in v1.5.2
 
-- fix(mcpb): anchor source ignore pattern (3286f7a)
-- feat(codex): add TfL MCP server plugin (69b482b)
-- chore: align project name and bump to v1.5.1 (cf7c0ac)
-- chore: bump versions to 1.5.0 (5daea9b)
+- Fix service-status MCP App rendering and align line labels (08b33f1, 73775e0)
+- Resolve all reported Node.js production dependency vulnerabilities
+- Update Node.js, Java, Gradle, and GitHub Actions dependencies
+- Preserve Java build outputs when packaging the MCPB extension
+- Correct connector-directory submission descriptions to match the six available tools
