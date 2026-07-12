@@ -22,8 +22,8 @@ restore_dev_dependencies() {
 trap restore_dev_dependencies EXIT
 
 echo "==> Packing MCPB extension..."
-rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
+rm -f "$OUTPUT_DIR/tfl-mcp-server.mcpb"
 mcpb pack "$NODE_DIR" "$OUTPUT_DIR/tfl-mcp-server.mcpb"
 
 trap - EXIT
