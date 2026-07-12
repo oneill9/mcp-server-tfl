@@ -1,6 +1,6 @@
 {
   "name": "@oneill9/tfl-mcp-server",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "build:mcpb": "bash ../scripts/build-mcpb.sh"
   },
   "dependencies": {
-    "@modelcontextprotocol/ext-apps": "^1.7.1",
+    "@modelcontextprotocol/ext-apps": "^1.7.4",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.4.3"
   },

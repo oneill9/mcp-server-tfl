@@ -7,14 +7,14 @@
     "url": "https://github.com/oneill9/tfl-mcp-server",
     "source": "github"
   },
-  "version": "1.5.1",
+  "version": "1.5.2",
   "privacy_policies": [
     "https://raw.githubusercontent.com/oneill9/tfl-mcp-server/main/PRIVACY.md"
   ],
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/oneill9/tfl-mcp-server:1.5.1",
+      "identifier": "ghcr.io/oneill9/tfl-mcp-server:1.5.2",
       "transport": {
         "type": "stdio"
       },

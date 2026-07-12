@@ -68,7 +68,7 @@ const SERVICE_STATUS_INPUT_SCHEMA = z
   })
   .strict();
 
-const server = new McpServer({ name: "TfL", version: "1.5.1" });
+const server = new McpServer({ name: "TfL", version: "1.5.2" });
 
 function logToolCall(
   toolName: string,
@@ -329,7 +329,7 @@ server.tool(
 
 // --- start server ---
 async function main() {
-  console.error(`Starting TfL MCP Server v1.5.1...`);
+  console.error(`Starting TfL MCP Server v1.5.2...`);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("TfL MCP Server connected and ready");
