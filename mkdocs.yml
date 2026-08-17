@@ -20,6 +20,7 @@ edit_uri: edit/main/docs/
 nav:
   - Welcome: index.md
   - Installation: installation.md
+  - Migrating to v2: migration-v2.md
   - Tools Overview: tools.md
   - API Keys: api-keys.md
 

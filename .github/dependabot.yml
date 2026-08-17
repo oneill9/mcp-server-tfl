@@ -1,17 +1,5 @@
 version: 2
 updates:
-  # Maintain dependencies for Gradle
-  - package-ecosystem: "gradle"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      gradle-dependencies:
-        patterns:
-          - "*"
-
   # Maintain dependencies for npm (Node.js)
   - package-ecosystem: "npm"
     directory: "/node"

@@ -13,7 +13,7 @@ Providing the `TFL_APP_KEY` environment variable significantly raises the rate l
 
 ### Passing the Key to the MCP Server
 
-For **Node.js MCPB** or **Java direct**, pass it via the `env` dictionary in your `claude_desktop_config.json`:
+For a source-based stdio configuration, pass it via the `env` dictionary in your `claude_desktop_config.json`. The MCPB installer exposes the same value as a sensitive configuration field.
 
 ```json
 "env": {
@@ -21,7 +21,7 @@ For **Node.js MCPB** or **Java direct**, pass it via the `env` dictionary in you
 }
 ```
 
-For **Docker**, pass it as a `-e` flag in `args`:
+For **Docker**, expose the client process environment and ask Docker to forward it into the container:
 
 ```json
 "args": [
@@ -29,7 +29,10 @@ For **Docker**, pass it as a `-e` flag in `args`:
   "-i",
   "--rm",
   "-e",
-  "TFL_APP_KEY=your_primary_key",
+  "TFL_APP_KEY",
   "ghcr.io/oneill9/tfl-mcp-server:latest"
-]
+],
+"env": {
+  "TFL_APP_KEY": "your_primary_key"
+}
 ```

@@ -1,12 +1,12 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+#!/usr/bin/env node
+import { McpServer } from "@modelcontextprotocol/server";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
+import { realpathSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import {
-  registerAppTool,
-  registerAppResource,
-  RESOURCE_MIME_TYPE,
-} from "@modelcontextprotocol/ext-apps/server";
 import { renderServiceStatusHtml, type LineStatusData } from "./ui.js";
+
+const RESOURCE_MIME_TYPE = "text/html;profile=mcp-app";
 
 const TFL_BASE = process.env.TFL_BASE_URL ?? "https://api.tfl.gov.uk";
 
@@ -68,7 +68,7 @@ const SERVICE_STATUS_INPUT_SCHEMA = z
   })
   .strict();
 
-const server = new McpServer({ name: "TfL", version: "1.5.2" });
+export function registerTflTools(server: McpServer): void {
 
 function logToolCall(
   toolName: string,
@@ -98,11 +98,13 @@ async function resolveStopName(query: string): Promise<string> {
 }
 
 // --- arrivals ---
-server.tool(
+server.registerTool(
   "arrivals",
-  "Get live arrivals at a TfL stop.",
-  { stopName: z.string().describe("Stop name or search term, e.g. oxford") },
-  { ...ANNOTATIONS, title: "Live Arrivals" },
+  {
+    description: "Get live arrivals at a TfL stop.",
+    inputSchema: z.object({ stopName: z.string().describe("Stop name or search term, e.g. oxford") }),
+    annotations: { ...ANNOTATIONS, title: "Live Arrivals" },
+  },
   async ({ stopName }) => {
     try {
       const stopId = await resolveStopName(stopName);
@@ -125,8 +127,7 @@ server.tool(
 
 const SERVICE_STATUS_UI_URI = "ui://tfl/service-status";
 
-registerAppResource(
-  server,
+server.registerResource(
   "Service Status Board",
   SERVICE_STATUS_UI_URI,
   {
@@ -170,8 +171,7 @@ function formatLineStatuses(lines: LineStatusData[]): string {
     .join("\n");
 }
 
-registerAppTool(
-  server,
+server.registerTool(
   "service_status",
   {
     title: "Service Status",
@@ -180,6 +180,7 @@ registerAppTool(
     annotations: { ...ANNOTATIONS, title: "Service Status" },
     _meta: {
       ui: { resourceUri: SERVICE_STATUS_UI_URI },
+      "ui/resourceUri": SERVICE_STATUS_UI_URI,
     },
   },
   async (args: ServiceStatusArgs) => {
@@ -190,6 +191,7 @@ registerAppTool(
       const data: any[] = await httpGet(path);
       const structured = parseLineStatuses(data);
       return {
+        structuredContent: structured,
         content: [
           { type: "text" as const, text: formatLineStatuses(structured) },
           {
@@ -210,14 +212,16 @@ registerAppTool(
 );
 
 // --- journey ---
-server.tool(
+server.registerTool(
   "journey",
-  "Plan a journey between two points using the TfL Journey Planner. Can bridge different transport modes seamlessly.",
   {
-    from: z.string().describe("Origin: NaPTAN ID, postcode, or lat,lon"),
-    to: z.string().describe("Destination: NaPTAN ID, postcode, or lat,lon"),
+    description: "Plan a journey between two points using the TfL Journey Planner. Can bridge different transport modes seamlessly.",
+    inputSchema: z.object({
+      from: z.string().describe("Origin: NaPTAN ID, postcode, or lat,lon"),
+      to: z.string().describe("Destination: NaPTAN ID, postcode, or lat,lon"),
+    }),
+    annotations: { ...ANNOTATIONS, title: "Journey Planner" },
   },
-  { ...ANNOTATIONS, title: "Journey Planner" },
   async ({ from, to }) => {
     try {
       const data = await httpGet(`/Journey/JourneyResults/${encodePath(from)}/to/${encodePath(to)}`);
@@ -240,11 +244,13 @@ server.tool(
 );
 
 // --- crowding ---
-server.tool(
+server.registerTool(
   "crowding",
-  "Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline.",
-  { stopName: z.string().describe("Stop name or search term, e.g. oxford") },
-  { ...ANNOTATIONS, title: "Station Crowding" },
+  {
+    description: "Get live crowding data for a TfL station. Returns the current crowding level as a percentage of the typical baseline.",
+    inputSchema: z.object({ stopName: z.string().describe("Stop name or search term, e.g. oxford") }),
+    annotations: { ...ANNOTATIONS, title: "Station Crowding" },
+  },
   async ({ stopName }) => {
     try {
       const naptan = await resolveStopName(stopName);
@@ -262,14 +268,16 @@ server.tool(
 );
 
 // --- fares ---
-server.tool(
+server.registerTool(
   "fares",
-  "Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel.",
   {
-    fromName: z.string().describe("Origin stop name, e.g. oxford"),
-    toName: z.string().describe("Destination stop name, e.g. bank"),
+    description: "Get fare information between two TfL stops, including pay-as-you-go and cash single prices for peak and off-peak travel.",
+    inputSchema: z.object({
+      fromName: z.string().describe("Origin stop name, e.g. oxford"),
+      toName: z.string().describe("Destination stop name, e.g. bank"),
+    }),
+    annotations: { ...ANNOTATIONS, title: "Fares" },
   },
-  { ...ANNOTATIONS, title: "Fares" },
   async ({ fromName, toName }) => {
     try {
       const fromStopId = await resolveStopName(fromName);
@@ -300,11 +308,13 @@ server.tool(
 );
 
 // --- bike_points ---
-server.tool(
+server.registerTool(
   "bike_points",
-  "Get TfL Santander Cycles bike point locations with available bikes and empty docks. Optionally filter by name with a search query.",
-  { query: z.string().optional().describe("Optional name search, e.g. clerkenwell") },
-  { ...ANNOTATIONS, title: "Bike Points" },
+  {
+    description: "Get TfL Santander Cycles bike point locations with available bikes and empty docks. Optionally filter by name with a search query.",
+    inputSchema: z.object({ query: z.string().optional().describe("Optional name search, e.g. clerkenwell") }),
+    annotations: { ...ANNOTATIONS, title: "Bike Points" },
+  },
   async ({ query }) => {
     try {
       const path = query?.trim() ? `/BikePoint/Search/${encodePath(query.trim())}` : "/BikePoint";
@@ -327,15 +337,42 @@ server.tool(
   }
 );
 
+}
+
+export function buildServer(): McpServer {
+  const server = new McpServer(
+    { name: "TfL", version: "2.0.0" },
+    {
+      cacheHints: {
+        "server/discover": { ttlMs: 300_000, cacheScope: "public" },
+        "tools/list": { ttlMs: 300_000, cacheScope: "public" },
+        "resources/list": { ttlMs: 300_000, cacheScope: "public" },
+        "resources/templates/list": { ttlMs: 300_000, cacheScope: "public" },
+        "resources/read": { ttlMs: 300_000, cacheScope: "public" },
+      },
+    }
+  );
+  registerTflTools(server);
+  return server;
+}
+
 // --- start server ---
-async function main() {
-  console.error(`Starting TfL MCP Server v1.5.2...`);
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+async function main(): Promise<void> {
+  if (process.argv.includes("--http")) {
+    const { startHttpServer } = await import("./http.js");
+    await startHttpServer();
+    return;
+  }
+
+  console.error(`Starting TfL MCP Server v2.0.0...`);
+  await serveStdio(buildServer, { legacy: "serve" });
   console.error("TfL MCP Server connected and ready");
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err);
-  process.exit(1);
-});
+const entryPoint = process.argv[1];
+if (entryPoint !== undefined && import.meta.url === pathToFileURL(realpathSync(entryPoint)).href) {
+  void main().catch((err) => {
+    console.error("Fatal:", err);
+    process.exitCode = 1;
+  });
+}

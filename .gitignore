@@ -1,7 +1,6 @@
 .gradle/
 build/
 .idea/
-*.iml
 .DS_Store
 .mcpregistry_*
 *.mcpb
@@ -11,6 +10,3 @@ build/
 # Node
 node/node_modules/
 node/dist/
-
-# Eclipse / Local Build
-bin/

@@ -1,24 +1,30 @@
-# Build stage
-FROM eclipse-temurin:25-jdk-alpine AS builder
+FROM node:22-alpine AS builder
+
+WORKDIR /workspace/node
+COPY node/package.json node/package-lock.json ./
+RUN npm ci
+
+COPY node/tsconfig.json ./
+COPY node/src ./src
+COPY node/scripts/copy-resources.mjs ./scripts/copy-resources.mjs
+COPY shared /workspace/shared
+RUN npm run build \
+    && npm prune --omit=dev
+
+FROM node:22-alpine
+
+ENV NODE_ENV=production \
+    HOST=0.0.0.0
 
 WORKDIR /app
-COPY . .
-RUN ./gradlew installDist --no-daemon
-
-# Run stage
-FROM eclipse-temurin:25-jre-alpine
-
-WORKDIR /app
-COPY --from=builder /app/build/install/tfl-mcp-server /app
-
-RUN chmod +x /app/bin/tfl-mcp-server \
-    && addgroup -S app && adduser -S app -G app
+COPY --from=builder --chown=node:node /workspace/node/package.json ./package.json
+COPY --from=builder --chown=node:node /workspace/node/node_modules ./node_modules
+COPY --from=builder --chown=node:node /workspace/node/dist ./dist
 
 LABEL io.modelcontextprotocol.server.name="io.github.oneill9/tfl-mcp-server"
 
-USER app
+USER node
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD test -d /proc/1 || exit 1
+EXPOSE 8080
 
-ENTRYPOINT ["/app/bin/tfl-mcp-server"]
+ENTRYPOINT ["node", "dist/index.js"]

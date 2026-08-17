@@ -140,6 +140,15 @@ function renderLines(lines) {
 }
 
 function handleResult(result) {
+  if (Array.isArray(result?.structuredContent)) {
+    renderLines(result.structuredContent);
+    hasRenderedResult = true;
+    notifySizeChanged();
+    return;
+  }
+
+  // Keep accepting the former embedded-resource shape while hosts transition
+  // to the MCP Apps structuredContent result field.
   const res = result?.content?.find(c => c.type === "resource");
   if (!res?.resource?.text) return;
   try {

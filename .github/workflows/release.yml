@@ -9,20 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v7
-    - name: Set up JDK 25
-      uses: actions/setup-java@v5
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: gradle
-    - name: Build with Gradle
-      run: ./gradlew build
-
-  test-node:
+  release-gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -31,46 +18,89 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: node/package-lock.json
-      - run: cd node && npm ci && npm run build && npm test
 
-  build-mcpb:
-    needs: test-node
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: node/package-lock.json
-
-      - name: Set version from tag
+      - name: Verify committed release versions match the tag
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          cd node
-          npm version "$VERSION" --allow-same-version --no-git-tag-version
-          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
-          sed -i "s/version: \"[^\"]*\"/version: \"$VERSION\"/g" src/index.ts
-          sed -i "s/Server v[0-9]*\.[0-9]*\.[0-9]*/Server v$VERSION/g" src/index.ts
+          node --input-type=module - "$VERSION" <<'NODE'
+          import { readFileSync } from "node:fs";
 
-      - name: Build Node server
-        run: cd node && npm ci && npm run build
+          const expected = process.argv[2];
+          const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
+          const packageJson = readJson("node/package.json");
+          const lock = readJson("node/package-lock.json");
+          const manifest = readJson("node/manifest.json");
+          const registry = readJson("server.json");
+          const plugin = readJson("codex-plugin/.codex-plugin/plugin.json");
+          const source = readFileSync("node/src/index.ts", "utf8");
+
+          const versions = new Map([
+            ["node/package.json", packageJson.version],
+            ["node/package-lock.json", lock.version],
+            ["node/package-lock.json root package", lock.packages?.[""]?.version],
+            ["node/manifest.json", manifest.version],
+            ["server.json", registry.version],
+            ["Codex plugin manifest", plugin.version],
+          ]);
+          for (const [sourceName, actual] of versions) {
+            if (actual !== expected) {
+              throw new Error(`${sourceName} has ${actual}; expected ${expected}`);
+            }
+          }
+          if (registry.packages?.[0]?.identifier !== `ghcr.io/${process.env.GITHUB_REPOSITORY}:${expected}`) {
+            throw new Error("server.json OCI identifier does not match the release tag");
+          }
+          if (!source.includes(`version: "${expected}"`) || !source.includes(`Server v${expected}`)) {
+            throw new Error("node/src/index.ts does not report the release tag version");
+          }
+          if ("@modelcontextprotocol/sdk" in (packageJson.dependencies ?? {})) {
+            throw new Error("Production dependencies must not include the v1 monolithic MCP SDK");
+          }
+          NODE
+
+      - name: Install dependencies
+        working-directory: node
+        run: npm ci
+
+      - name: Build and run unit, HTTP, and MCP conformance tests
+        working-directory: node
+        run: npm run build && npm test && npm run test:package && npm run test:conformance
+
+      - name: Run live TfL contract tests
+        working-directory: node
+        run: npm run contractTest
+        env:
+          TFL_APP_KEY: ${{ secrets.TFL_APP_KEY }}
+
+  build-mcpb:
+    needs: release-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: node/package-lock.json
 
       - name: Install mcpb CLI
         run: npm install -g @anthropic-ai/mcpb
 
-      - name: Pack MCPB bundle
-        run: cd node && mcpb pack && mv node.mcpb tfl.mcpb
+      - name: Build and smoke-test MCPB bundle
+        env:
+          SKIP_DOCKER_SMOKE: 1
+          SKIP_NPM_SMOKE: 1
+        run: bash scripts/test-distributions.sh
 
       - name: Upload MCPB artifact
         uses: actions/upload-artifact@v7
         with:
           name: mcpb-bundle
-          path: node/tfl.mcpb
+          path: build/tfl-mcp-server.mcpb
 
   publish-docker:
-    needs: test
+    needs: release-gate
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -78,6 +108,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: node/package-lock.json
+
+      - name: Install smoke-test dependencies
+        run: cd node && npm ci
+
+      - name: Build and smoke-test stdio and HTTP container modes
+        env:
+          SKIP_MCPB_SMOKE: 1
+          SKIP_NPM_SMOKE: 1
+          TFL_SMOKE_IMAGE: tfl-mcp-server:release-smoke
+        run: bash scripts/test-distributions.sh
 
       - name: Log in to the Container registry
         uses: docker/login-action@v4
@@ -104,8 +150,31 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  publish-npm:
+    needs: release-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install dependencies
+        working-directory: node
+        run: npm ci
+
+      - name: Publish public npm package with trusted publishing
+        working-directory: node
+        run: npm publish
+
   github-release:
-    needs: [test, publish-docker, build-mcpb]
+    needs: [publish-docker, publish-npm, build-mcpb]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -121,12 +190,6 @@ jobs:
         with:
           name: mcpb-bundle
           path: mcpb-out
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-          cache: gradle
 
       - name: Cache mcp-publisher
         id: cache-mcp-publisher
@@ -140,9 +203,6 @@ jobs:
         run: |
           mkdir -p ~/.local/bin
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz -C ~/.local/bin mcp-publisher
-
-      - name: Build distributions
-        run: ./gradlew distZip -Pversion="${GITHUB_REF_NAME#v}"
 
       - name: Build release notes
         run: |
@@ -176,19 +236,14 @@ jobs:
 
           #### Claude Desktop — MCPB extension (recommended)
 
-          Download `tfl.mcpb` from the assets below and double-click to install it directly in Claude Desktop.
+          Download `tfl-mcp-server.mcpb` from the assets below and double-click to install it directly in Claude Desktop.
 
-          Or add manually to your `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`, Linux: `~/.config/Claude/`):
+          #### npm
 
-          ```json
-          {
-            "mcpServers": {
-              "tfl": {
-                "command": "npx",
-                "args": ["-y", "@oneill9/tfl-mcp-server"]
-              }
-            }
-          }
+          Run the modern stdio server with Node.js 22 or later:
+
+          ```shell
+          npx -y @oneill9/tfl-mcp-server@VERSION
           ```
 
           #### Docker
@@ -204,55 +259,19 @@ jobs:
           }
           ```
 
-          #### Java (from ZIP)
+          The image starts the stdio transport by default. To run Streamable HTTP on port 8080 instead:
 
-          Download the ZIP below, extract it, and add to your config:
-
-          ```json
-          {
-            "mcpServers": {
-              "tfl": {
-                "command": "/path/to/tfl-mcp-server/bin/tfl-mcp-server"
-              }
-            }
-          }
+          ```shell
+          docker run --rm -p 8080:8080 ghcr.io/REPO:TAG --http
           ```
 
           ### API Key
 
           A TfL API key is **strongly recommended** — without one, strict rate limits will impact most real-world usage. Pass it via the `TFL_APP_KEY` environment variable. [Register free at api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
           TEMPLATE
-          # Replace REPO:TAG placeholder with actual values
-          sed -i "s|ghcr.io/REPO:TAG|ghcr.io/${{ github.repository }}:${{ github.ref_name }}|g" release_notes.md
-
-      - name: Update versions across repo
-        run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          jq --arg v "$VERSION" \
-             --arg img "ghcr.io/${{ github.repository }}:$VERSION" \
-             '.version = $v | .packages[0].identifier = $img' \
-             server.json > server.json.tmp && mv server.json.tmp server.json
-          sed -i "s/^version=.*/version=$VERSION/" gradle.properties
-          cd node
-          npm version "$VERSION" --allow-same-version --no-git-tag-version
-          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
-          sed -i "s/version: \"[^\"]*\"/version: \"$VERSION\"/g" src/index.ts
-          sed -i "s/Server v[0-9]*\.[0-9]*\.[0-9]*/Server v$VERSION/g" src/index.ts
-          cd ..
-
-      - name: Commit version bumps back to main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout main
-          git add server.json gradle.properties node/package.json node/package-lock.json node/manifest.json node/src/index.ts
-          if git diff --cached --quiet; then
-            echo "Versions already up to date"
-          else
-            git commit -m "chore: bump versions to ${GITHUB_REF_NAME#v}"
-            git push origin main
-          fi
+          sed -i "s|ghcr.io/REPO:TAG|ghcr.io/${{ github.repository }}:$VERSION|g" release_notes.md
+          sed -i "s|@oneill9/tfl-mcp-server@VERSION|@oneill9/tfl-mcp-server@$VERSION|g" release_notes.md
 
       - name: Publish to MCP Registry
         run: |
@@ -264,5 +283,4 @@ jobs:
         with:
           body_path: release_notes.md
           files: |
-            build/distributions/*.zip
-            mcpb-out/tfl.mcpb
+            mcpb-out/tfl-mcp-server.mcpb

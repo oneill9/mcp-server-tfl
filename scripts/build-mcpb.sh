@@ -12,7 +12,7 @@ echo "==> Compiling TypeScript..."
 npm run build
 
 echo "==> Pruning dev dependencies..."
-npm prune --production
+npm prune --omit=dev
 
 restore_dev_dependencies() {
   echo "==> Restoring dev dependencies..."

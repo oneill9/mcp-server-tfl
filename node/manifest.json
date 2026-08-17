@@ -1,8 +1,8 @@
 {
-  "manifest_version": "0.3",
+  "manifest_version": "0.4",
   "name": "tfl-mcp-server",
   "display_name": "TfL MCP Server",
-  "version": "1.5.2",
+  "version": "2.0.0",
   "description": "Real-time London transport data via the TfL Unified API",
   "author": {
     "name": "oneill9"
@@ -16,11 +16,19 @@
         "${__dirname}/dist/index.js"
       ],
       "env": {
+        "TFL_APP_ID": "${user_config.tfl_app_id}",
         "TFL_APP_KEY": "${user_config.tfl_app_key}"
       }
     }
   },
   "user_config": {
+    "tfl_app_id": {
+      "type": "string",
+      "title": "TfL App ID",
+      "description": "Optional App ID for older TfL API registrations that issued both an ID and key.",
+      "sensitive": true,
+      "required": false
+    },
     "tfl_app_key": {
       "type": "string",
       "title": "TfL API Key",
@@ -61,6 +69,9 @@
       "darwin",
       "win32",
       "linux"
-    ]
+    ],
+    "runtimes": {
+      "node": ">=22.0.0"
+    }
   }
 }
