@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Client } from "@modelcontextprotocol/client";
+import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -167,7 +167,10 @@ beforeAll(async () => {
     stderr: "pipe",
   });
 
-  client = new Client({ name: "test-client", version: "1.0.0" });
+  client = new Client(
+    { name: "test-client", version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } }
+  );
   await client.connect(transport);
 }, 15000);
 
@@ -182,6 +185,75 @@ afterAll(async () => {
 // --- tool list ---
 
 describe("tool listing", () => {
+  it("serves the modern 2026-07-28 protocol with discover capabilities", () => {
+    expect(client.getProtocolEra()).toBe("modern");
+    expect(client.getDiscoverResult()).toMatchObject({
+      supportedVersions: ["2026-07-28"],
+      capabilities: {
+        tools: { listChanged: true },
+        resources: { listChanged: true },
+      },
+    });
+  });
+
+  it("serves Codex-compatible 2025-era stdio clients with the MCP App contract", async () => {
+    const codexTransport = new StdioClientTransport({
+      command: "node",
+      args: [path.resolve(__dirname, "..", "dist", "index.js")],
+      env: {
+        ...process.env as Record<string, string>,
+        TFL_BASE_URL: `http://localhost:${mockPort}`,
+      },
+      stderr: "pipe",
+    });
+    const codexClient = new Client(
+      { name: "codex-compatibility-test", version: "1.0.0" },
+      { versionNegotiation: { mode: "legacy" } }
+    );
+
+    try {
+      await codexClient.connect(codexTransport);
+
+      expect(codexClient.getProtocolEra()).toBe("legacy");
+      expect(codexClient.getNegotiatedProtocolVersion()).toMatch(/^2025-/);
+
+      const tools = await codexClient.listTools();
+      const serviceStatus = tools.tools.find(({ name }) => name === "service_status");
+      expect(serviceStatus?._meta).toMatchObject({
+        ui: { resourceUri: "ui://tfl/service-status" },
+        "ui/resourceUri": "ui://tfl/service-status",
+      });
+
+      const resource = await codexClient.readResource({ uri: "ui://tfl/service-status" });
+      expect(resource.contents[0]).toMatchObject({
+        uri: "ui://tfl/service-status",
+        mimeType: "text/html;profile=mcp-app",
+      });
+
+      const result = await codexClient.callTool({
+        name: "service_status",
+        arguments: { modes: "tube" },
+      });
+      expect(result.isError).toBeFalsy();
+      expect(result.structuredContent).toEqual({
+        result: expect.arrayContaining([
+          expect.objectContaining({ name: "Central" }),
+        ]),
+      });
+      expect(result.content).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          type: "resource",
+          resource: expect.objectContaining({
+            uri: "ui://tfl/service-status",
+            mimeType: "application/json",
+          }),
+        }),
+      ]));
+    } finally {
+      await codexClient.close();
+    }
+  });
+
   it("lists all 6 tools", async () => {
     const result = await client.listTools();
     const names = result.tools.map((t) => t.name);
@@ -238,14 +310,28 @@ describe("service_status", () => {
     expect(text).toContain("Good Service");
   });
 
+  it("explains how to raise TfL rate limits when the API returns 429", async () => {
+    const path = "/Line/Mode/tube/Status";
+    const successfulResponse = STUBS[path];
+    STUBS[path] = { status: 429, body: "Rate limit exceeded" };
+
+    try {
+      const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
+      const text = (result.content as any)[0].text;
+
+      expect(result.isError).toBe(true);
+      expect(text).toContain("HTTP 429");
+      expect(text).toContain("TFL_APP_KEY");
+      expect(text).toContain("https://api-portal.tfl.gov.uk/signup");
+    } finally {
+      STUBS[path] = successfulResponse;
+    }
+  });
+
   it("returns structured JSON for smoke inputs", async () => {
     const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
     expect(result.isError).toBeFalsy();
-    const structuredContent = (result.content as any[]).find((c: any) => c.type === "resource");
-    expect(structuredContent).toBeDefined();
-    expect(structuredContent.resource.mimeType).toBe("application/json");
-    expect(structuredContent.resource.text).not.toContain("<html");
-    expect(() => JSON.parse(structuredContent.resource.text)).not.toThrow();
+    expect(result.structuredContent).toEqual(expect.any(Array));
   });
 
   it("returns error on 400", async () => {
@@ -253,7 +339,7 @@ describe("service_status", () => {
     expect(result.isError).toBe(true);
     const text = (result.content as any)[0].text;
     expect(text).toContain("Invalid arguments for tool service_status");
-    expect(text).toContain('expected \\"tube\\"');
+    expect(text).toContain('expected "tube"');
   });
 });
 
@@ -334,6 +420,50 @@ describe("fares", () => {
 // --- MCP Apps UI ---
 
 describe("MCP Apps UI for service_status", () => {
+  it("preserves the service status app contract for modern clients", async () => {
+    expect(client.getProtocolEra()).toBe("modern");
+
+    const tools = await client.listTools();
+    const tool = tools.tools.find((candidate) => candidate.name === "service_status");
+    expect(tool?._meta).toMatchObject({
+      ui: { resourceUri: "ui://tfl/service-status" },
+      "ui/resourceUri": "ui://tfl/service-status",
+    });
+
+    const resource = await client.readResource({ uri: "ui://tfl/service-status" });
+    expect(resource.contents).toEqual([
+      expect.objectContaining({
+        uri: "ui://tfl/service-status",
+        mimeType: "text/html;profile=mcp-app",
+        text: expect.stringContaining("<!DOCTYPE html>"),
+      }),
+    ]);
+    expect((resource.contents[0] as any).text).toContain("result?.structuredContent");
+
+    const result = await client.callTool({
+      name: "service_status",
+      arguments: { modes: "tube" },
+    });
+    expect(result.content).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: "text",
+        text: expect.stringContaining("Central: Good Service"),
+      }),
+    ]));
+    expect(result.structuredContent).toEqual([
+      {
+        id: "central",
+        name: "Central",
+        statuses: [{ severity: "Good Service" }],
+      },
+      {
+        id: "victoria",
+        name: "Victoria",
+        statuses: [{ severity: "Minor Delays", reason: "Earlier signal failure" }],
+      },
+    ]);
+  });
+
   it("service_status tool advertises ui resource URI in _meta", async () => {
     const result = await client.listTools();
     const tool = result.tools.find((t) => t.name === "service_status");
@@ -395,11 +525,7 @@ describe("MCP Apps UI for service_status", () => {
 
   it("service_status returns structured data for UI", async () => {
     const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
-    const structuredContent = (result.content as any[]).find((c: any) => c.type === "resource");
-    expect(structuredContent).toBeDefined();
-    expect(structuredContent.resource.uri).toBe("ui://tfl/service-status");
-    // The structured text should be parseable JSON with line status data
-    const data = JSON.parse(structuredContent.resource.text);
+    const data = result.structuredContent as any[];
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
     expect(data[0]).toHaveProperty("name");

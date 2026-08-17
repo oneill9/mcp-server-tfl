@@ -7,8 +7,8 @@
  * verify the server works correctly without authentication.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Client } from "@modelcontextprotocol/client";
+import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,7 +32,10 @@ beforeAll(async () => {
     stderr: "pipe",
   });
 
-  client = new Client({ name: "contract-test", version: "1.0.0" });
+  client = new Client(
+    { name: "contract-test", version: "1.0.0" },
+    { versionNegotiation: { mode: { pin: "2026-07-28" } } }
+  );
   await client.connect(transport);
 }, 15000);
 

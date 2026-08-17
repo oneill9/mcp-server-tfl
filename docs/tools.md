@@ -3,6 +3,8 @@
 The TfL MCP Server exposes 6 dynamic tools that query live London transport data via the [TfL Unified API](https://api.tfl.gov.uk/). 
 Names of stops are automatically resolved to NaPTAN IDs dynamically.
 
+The tool surface is identical over stdio and stateless Streamable HTTP. Both transports require an MCP `2026-07-28` client.
+
 ---
 
 ## `service_status` — Service Status

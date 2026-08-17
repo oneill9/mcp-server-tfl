@@ -1,11 +1,4 @@
 #!/bin/sh
-echo "Running Gradle build before commit..."
-./gradlew build
-if [ $? -ne 0 ]; then
-  echo "Gradle build failed. Commit aborted."
-  exit 1
-fi
-
 echo "Running Node.js build and tests before commit..."
 cd node && npm run build && npm test
 if [ $? -ne 0 ]; then

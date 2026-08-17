@@ -1,10 +1,12 @@
 # Compliance Statement
 
-**Last updated: 2026-03-26**
+**Last updated: 2026-08-09**
 
-> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
+> **Disclaimer:** This is a **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
 
 This document records the compliance review for the **TfL MCP Server** against the Anthropic Software Directory requirements.
+
+The v2 distribution is a single Node.js 22 implementation. Its MCPB and default OCI modes use stdio; the OCI image can also expose stateless Streamable HTTP at `/mcp`. The server implements MCP `2026-07-28` only and remains read-only in both modes.
 
 ---
 
@@ -22,7 +24,7 @@ We have reviewed the [Anthropic Software Directory Terms](https://support.claude
 We have reviewed the [Anthropic Software Directory Policy](https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy) and confirm that this server complies with it. Specifically:
 
 - The server is a read-only integration with a public third-party API (TfL) — no destructive or sensitive operations are exposed.
-- No user personal data is collected, stored, or transmitted beyond forwarding queries to TfL in real time (see [PRIVACY.md](PRIVACY.md)).
+- No analytics or telemetry is collected, and no user personal data is stored or transmitted beyond forwarding queries to TfL in real time. Limited operational diagnostics may be handled by the local host as described in [PRIVACY.md](PRIVACY.md).
 - The server does not facilitate or encourage any activity that violates Anthropic's usage policies.
 - The server logo and branding are original and do not infringe TfL trademarks. The project is clearly marked as community-built, with no affiliation to Transport for London.
 

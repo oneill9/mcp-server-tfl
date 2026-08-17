@@ -21,10 +21,10 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 
 | Field | Value |
 |-------|-------|
-| **Transport protocol** | stdio (Desktop extension / MCPB) |
+| **Transport protocol** | MCP `2026-07-28`; stdio (Desktop extension / MCPB and default OCI mode) also accepts 2025-era desktop clients, plus modern-only stateless Streamable HTTP at `/mcp` |
 | **Auth type** | None (no OAuth). Optional TfL API key via `TFL_APP_KEY` environment variable. |
 | **Read / Write** | Read-only — all 6 tools are read-only queries against the TfL API. No write operations. |
-| **Packages** | `tfl-mcp-server.mcpb` (Node.js MCPB — primary), `ghcr.io/oneill9/tfl-mcp-server:latest` (OCI / Docker) |
+| **Packages** | `tfl-mcp-server.mcpb` (Node.js MCPB — primary), `@oneill9/tfl-mcp-server` (npm / stdio), `ghcr.io/oneill9/tfl-mcp-server:latest` (OCI / Docker) |
 
 ---
 
@@ -32,11 +32,11 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 
 | Field | Value |
 |-------|-------|
-| **Data collection** | None. The server does not collect, log, or store any user data. |
-| **Data storage** | None. No query history or results are persisted between requests. |
+| **Data collection** | No analytics or telemetry. Limited operational diagnostics are written to standard error and are not persisted by the server. |
+| **Data storage** | None by the server. No query history or results are persisted between requests; a host may retain standard-error output under its own logging policy. |
 | **Third-party connections** | TfL Unified API (`api.tfl.gov.uk`). Queries are forwarded to TfL in real time. See [TfL's privacy policy](https://tfl.gov.uk/corporate/privacy-and-cookies/). |
 | **Health data access** | No. |
-| **Data retention** | None. The server holds no state between requests. |
+| **Data retention** | None by the server. The server holds no state between requests. |
 | **Privacy policy URL** | https://raw.githubusercontent.com/oneill9/tfl-mcp-server/main/PRIVACY.md |
 
 ---
@@ -56,7 +56,7 @@ Prepared content for the [Desktop extension submission form](http://clau.de/desk
 
 ## Working Use Case Examples
 
-These examples are verified by the project's contract tests (`StdioContractTest.java`), which spawn the server as a real subprocess over stdio transport — the same way Claude Desktop connects.
+These examples are verified by `node/test/contract.test.ts`, which spawns the built server as a real subprocess over stdio — the same way Claude Desktop connects. `node/test/http.test.ts` verifies the stateless Streamable HTTP transport. The official conformance fixture exercises the production TfL registrations and shared modern-only HTTP adapter while adding test-only diagnostics required by the referee's hard-coded probes; those diagnostics are never exposed by production.
 
 ### Example 1: Check tube line status
 
@@ -89,4 +89,4 @@ Verified by `arrivalsWithoutKey()`.
 
 **Desktop extension form**: http://clau.de/desktop-extention-submission
 
-Rationale: the server is distributed as both a Node.js MCPB bundle (primary) and a Docker image, both invoked via stdio transport — the standard Desktop extension pattern. No OAuth or server-side infrastructure is needed.
+Rationale: the server is distributed as a Node.js MCPB bundle (primary) and an OCI image. Both support stdio, the standard Desktop extension pattern; the OCI image also supports opt-in stateless Streamable HTTP at `/mcp`. No OAuth is needed for the local MCPB submission path.

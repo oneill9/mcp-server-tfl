@@ -6,6 +6,8 @@ Welcome
 
 This MCP server exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) tools, allowing AI assistants like Claude to query live London transport data.
 
+Version 2 is built on Node.js 22 and the MCP `2026-07-28` protocol revision. It supports stdio/MCPB and stateless Streamable HTTP at `/mcp`. HTTP is modern-only; stdio also accepts 2025-era initialization for desktop-host compatibility.
+
 ## Features
 
 ### Line & Service Status

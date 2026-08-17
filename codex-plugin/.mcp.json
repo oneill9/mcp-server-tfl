@@ -1,9 +1,9 @@
 {
-  "tfl-mcp-server": {
-    "command": "node",
-    "args": ["${PLUGIN_DIR}/../node/dist/index.js"],
-    "env": {
-      "TFL_APP_KEY": "${TFL_APP_KEY}"
+  "mcpServers": {
+    "tfl-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@oneill9/tfl-mcp-server@2.0.0"],
+      "env_vars": ["TFL_APP_KEY"]
     }
   }
 }

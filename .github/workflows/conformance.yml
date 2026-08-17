@@ -1,0 +1,32 @@
+name: MCP Conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server-2026-07-28:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: node/package-lock.json
+
+      - name: Install Node dependencies
+        working-directory: node
+        run: npm ci
+
+      - name: Build Node server
+        working-directory: node
+        run: npm run build
+
+      - name: Run MCP 2026-07-28 server conformance
+        working-directory: node
+        run: npm run test:conformance

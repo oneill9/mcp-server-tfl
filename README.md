@@ -7,11 +7,11 @@
 [![GitHub release](https://img.shields.io/github/v/release/oneill9/tfl-mcp-server)](https://github.com/oneill9/tfl-mcp-server/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A MCP server that exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) as tools, allowing AI assistants like Claude to query live London transport data.
+An MCP server that exposes the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/) as tools, allowing AI assistants like Claude to query live London transport data.
 
-Available in two implementations:
-- **Node.js (MCPB)** — lightweight Desktop extension, recommended for Claude Desktop
-- **Java** — Docker image or standalone ZIP, also supports HTTP/SSE transport
+Version 2 is a single Node.js 22 implementation using the MCP `2026-07-28` protocol revision. It supports stdio for local hosts, npm, and MCPB, plus stateless Streamable HTTP at `/mcp` for remote deployments.
+
+> **Protocol compatibility:** Streamable HTTP is modern-only MCP `2026-07-28`. The stdio entry point also accepts 2025-era initialization for desktop hosts such as Codex, while modern stdio clients continue to negotiate `2026-07-28`. Legacy HTTP/SSE is not supported.
 
 ## Getting Started
 
@@ -24,27 +24,32 @@ Open your Claude Desktop config file:
 
 **Option A: Node.js MCPB (recommended)**
 
-Download `tfl-mcp-server.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop, or add manually:
+Download `tfl-mcp-server.mcpb` from [GitHub Releases](https://github.com/oneill9/tfl-mcp-server/releases) and install it in Claude Desktop.
+
+**Option B: npm**
+
+With Node.js 22 or later installed, point Claude Desktop at the published package:
 
 ```json
 {
   "mcpServers": {
     "tfl-mcp-server": {
       "command": "npx",
-      "args": ["-y", "@oneill9/tfl-mcp-server"]
+      "args": ["-y", "@oneill9/tfl-mcp-server@2.0.0"],
+      "env": { "TFL_APP_KEY": "your_key_here" }
     }
   }
 }
 ```
 
-**Option B: Docker**
+**Option C: Docker**
 
 ```json
 {
   "mcpServers": {
     "tfl-mcp-server": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "ghcr.io/oneill9/tfl-mcp-server:latest"]
+      "args": ["run", "-i", "--rm", "-e", "TFL_APP_KEY", "ghcr.io/oneill9/tfl-mcp-server:latest"]
     }
   }
 }
@@ -52,7 +57,7 @@ Download `tfl-mcp-server.mcpb` from [GitHub Releases](https://github.com/oneill9
 
 **Step 2 — Add a TfL API key (recommended)**
 
-Without a key, TfL applies strict rate limits that will impact most real-world usage. [Register a free key](https://api-portal.tfl.gov.uk/) and pass it via the `TFL_APP_KEY` environment variable:
+Without a key, TfL applies strict rate limits that will impact most real-world usage. [Register a free key](https://api-portal.tfl.gov.uk/) and pass it via the `TFL_APP_KEY` environment variable. The Docker example's `-e TFL_APP_KEY` forwards this value into the container:
 
 ```json
 "env": { "TFL_APP_KEY": "your_key_here" }
@@ -62,7 +67,7 @@ Without a key, TfL applies strict rate limits that will impact most real-world u
 
 Example: *"Is the Central line running normally?"*, *"When is the next bus from Oxford Circus?"*
 
-For full setup details (Java direct, Docker options), see [docs/installation.md](docs/installation.md).
+For source, Docker, and Streamable HTTP options, see [docs/installation.md](docs/installation.md).
 
 ## Tools
 
@@ -89,7 +94,7 @@ See [docs/tools.md](docs/tools.md) for full details.
 
 ## Authentication
 
-This server is distributed as a **Desktop extension (MCPB)** using stdio transport. It does not implement OAuth or any server-side authentication.
+The MCPB and default container mode use stdio transport. The optional Streamable HTTP mode does not implement OAuth or any other server-side authentication; deploy it only behind an appropriate trusted access layer.
 
 The TfL API uses a simple API key (`TFL_APP_KEY`) that you supply as an environment variable. A key is **strongly recommended** — without one, TfL applies strict rate limits that will impact most real-world usage. Registration is free. No OAuth flow, login, or account beyond the TfL portal is required to use this MCP server.
 
@@ -99,26 +104,35 @@ The TfL API uses a simple API key (`TFL_APP_KEY`) that you supply as an environm
 |----------------------|---------|-------------|
 | `TFL_APP_KEY` | *(none)* | TfL API key — register at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/) |
 | `TFL_APP_ID` | *(none)* | TfL App ID — only needed for older API registrations that issued both an ID and key |
+| `MCP_MAX_REQUEST_BODY_BYTES` | `1048576` | Maximum JSON request body size accepted by Streamable HTTP |
+| `MCP_REQUEST_TIMEOUT_MS` | `30000` | Streamable HTTP request timeout in milliseconds |
+| `MCP_HEADERS_TIMEOUT_MS` | `10000` | Streamable HTTP header timeout in milliseconds; must not exceed the request timeout |
 
 An API key is strongly recommended — without one, TfL's strict rate limits will impact most real-world usage. Registration is free at [api-portal.tfl.gov.uk](https://api-portal.tfl.gov.uk/).
 
-## Running
+## Running from source
 
-Both implementations use **stdio transport** — JSON-RPC over stdin/stdout, the standard MCP transport for Claude Desktop.
+Node.js 22 or later is required. Install from the lockfile and build before starting the server.
 
 ```sh
-# Node.js
-cd node && npm run build && node dist/index.js
-
-# Java
-./gradlew run
+cd node
+npm ci
+npm run build
+node dist/index.js
 ```
+
+That starts stdio transport. For stateless Streamable HTTP:
+
+```sh
+cd node
+HOST=127.0.0.1 PORT=8080 node dist/index.js --http
+```
+
+Connect an MCP `2026-07-28` client to `http://127.0.0.1:8080/mcp`. Set `MCP_ALLOWED_HOSTS` to a comma-separated hostname allowlist when serving under other hostnames.
 
 For use with Claude Desktop, see [docs/installation.md](docs/installation.md).
 
 ## Testing
-
-### Node.js
 
 Unit tests use a mock HTTP server — no network access or API key required:
 
@@ -126,25 +140,21 @@ Unit tests use a mock HTTP server — no network access or API key required:
 cd node && npm test
 ```
 
+The Streamable HTTP acceptance tests are included in `npm test`. Run the official frozen MCP `2026-07-28` requirement set separately (optional extension probes outside that set are not scored):
+
+```sh
+cd node && npm run test:conformance
+```
+
+The conformance fixture registers the real production TfL tools and resource through the shared modern-only HTTP adapter. It also adds test-only diagnostic tools, resources, prompts, and flows needed by the referee's hard-coded probes; those diagnostics are not exposed by the production entry point.
+
 Contract tests call the live TfL API:
 
 ```sh
 cd node && TFL_APP_KEY=your_key_here npm run contractTest
 ```
 
-### Java
-
-Unit tests use WireMock to stub the TfL API — no network access or API key required:
-
-```sh
-./gradlew test
-```
-
-Contract tests spin up the server as a real subprocess and call the live TfL API:
-
-```sh
-TFL_APP_KEY=your_key_here ./gradlew contractTest
-```
+Build and smoke-test the packed npm CLI, MCPB, and container distributions with `bash scripts/test-distributions.sh`. The script skips container checks when Docker is unavailable.
 
 ## Support
 
@@ -154,10 +164,10 @@ For questions, bug reports, or feature requests, please open an issue on [GitHub
 
 This MCP server acts as a local proxy between your AI assistant and the [TfL Unified API](https://api.tfl.gov.uk/). It does not collect, store, or transmit any personal data beyond what is required to forward your queries to TfL.
 
-- **Data collection:** No user data is collected or logged by this server.
+- **Data collection:** No analytics or telemetry is collected. Limited operational diagnostics are written to standard error but are not persisted by the server; a host may retain them under its own logging policy.
 - **Usage and storage:** Queries are forwarded to TfL in real time and responses are returned immediately. No query history or results are persisted.
 - **Third-party sharing:** Requests are forwarded to the TfL Unified API (`api.tfl.gov.uk`). See [TfL's privacy policy](https://tfl.gov.uk/corporate/privacy-and-cookies/) for how TfL handles API usage data.
-- **Data retention:** No data is retained. The server holds no state between requests.
+- **Data retention:** The server retains no data and holds no state between requests. Host-managed standard-error retention is outside the server's control.
 - **Contact:** For privacy concerns, open an issue at <https://github.com/oneill9/tfl-mcp-server/issues>.
 
 The full privacy policy is available at [PRIVACY.md](PRIVACY.md).

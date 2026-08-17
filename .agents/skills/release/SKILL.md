@@ -10,6 +10,8 @@ Prepare a release for version $ARGUMENTS.
 
 1. **Validate the version tag** — ensure it starts with `v` and follows semver (e.g. `v1.0.0`). If no argument is provided, ask the user for the version.
 
+   Before the first npm release, confirm npm trusted publishing for `@oneill9/tfl-mcp-server` authorizes the GitHub repository `oneill9/tfl-mcp-server`, workflow file `release.yml`, and the `npm publish` action. The release workflow uses GitHub OIDC and intentionally has no long-lived npm token.
+
 2. **Find the previous tag** — run `git tag --sort=-v:refname` to find the most recent existing tag. If there is no previous tag, the changelog covers all commits.
 
 3. **Generate the changelog** — run `git log --oneline <previous-tag>..HEAD` to get the list of commits since the last release. Group them into a readable changelog with sections like "What's Changed". Include commit messages but exclude merge commits.

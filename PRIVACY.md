@@ -1,14 +1,14 @@
 # Privacy Policy
 
-**Last updated: 2026-03-26**
+**Last updated: 2026-08-09**
 
-> **Disclaimer:** This is an **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
+> **Disclaimer:** This is a **community-built** project. It is **not affiliated with, endorsed by, or connected to Transport for London (TfL)** in any way.
 
 The TfL MCP Server (`tfl-mcp-server`) is an open-source local proxy that forwards transport queries from your AI assistant to the [TfL (Transport for London) Unified API](https://api.tfl.gov.uk/). This policy describes how the server handles data.
 
 ## Data Collection
 
-This server does **not** collect, store, or transmit any personal data. No analytics, telemetry, or logging of user queries is performed.
+This server does **not** collect or transmit personal data to the maintainer. It has no analytics or telemetry. It writes startup, transport-error, and limited service-status diagnostic messages to standard error; those diagnostics do not include TfL API credentials and are not persisted by the server. A host or container platform may retain standard-error output according to its own logging configuration.
 
 ## Usage and Storage
 
@@ -22,7 +22,7 @@ If you provide a `TFL_APP_KEY`, it is sent as a query parameter to TfL's servers
 
 ## Data Retention
 
-The server holds no state between requests. No data is retained after a response is returned.
+The server holds no state between requests and does not retain data itself. Host-managed standard-error retention, if enabled, is controlled by the host rather than this server.
 
 ## Children's Privacy
 

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,5 +13,7 @@ export interface LineStatusData {
 
 export function renderServiceStatusHtml(_lines?: LineStatusData[]): string {
   const here = dirname(fileURLToPath(import.meta.url));
-  return readFileSync(resolve(here, "resources", "service-status.html"), "utf8");
+  const packagedResource = resolve(here, "resources", "service-status.html");
+  const sourceResource = resolve(here, "..", "..", "shared", "resources", "service-status.html");
+  return readFileSync(existsSync(packagedResource) ? packagedResource : sourceResource, "utf8");
 }
