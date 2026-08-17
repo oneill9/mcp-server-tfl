@@ -9,6 +9,7 @@ import { renderServiceStatusHtml, type LineStatusData } from "./ui.js";
 const RESOURCE_MIME_TYPE = "text/html;profile=mcp-app";
 
 const TFL_BASE = process.env.TFL_BASE_URL ?? "https://api.tfl.gov.uk";
+const TFL_API_KEY_SIGNUP_URL = "https://api-portal.tfl.gov.uk/signup";
 
 function withAuth(url: string): string {
   const params: string[] = [];
@@ -32,6 +33,11 @@ function encodeSegments(csv: string): string {
 async function httpGet(path: string): Promise<any> {
   const url = withAuth(`${TFL_BASE}${path}`);
   const response = await fetch(url);
+  if (response.status === 429) {
+    throw new Error(
+      `TfL API returned HTTP 429 (rate limit exceeded). Register for a free API key at ${TFL_API_KEY_SIGNUP_URL} and configure it as TFL_APP_KEY. If a key is already configured, verify it or retry later.`,
+    );
+  }
   if (!response.ok) {
     throw new Error(`TfL API returned HTTP ${response.status}`);
   }

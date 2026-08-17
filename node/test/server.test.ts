@@ -310,6 +310,24 @@ describe("service_status", () => {
     expect(text).toContain("Good Service");
   });
 
+  it("explains how to raise TfL rate limits when the API returns 429", async () => {
+    const path = "/Line/Mode/tube/Status";
+    const successfulResponse = STUBS[path];
+    STUBS[path] = { status: 429, body: "Rate limit exceeded" };
+
+    try {
+      const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
+      const text = (result.content as any)[0].text;
+
+      expect(result.isError).toBe(true);
+      expect(text).toContain("HTTP 429");
+      expect(text).toContain("TFL_APP_KEY");
+      expect(text).toContain("https://api-portal.tfl.gov.uk/signup");
+    } finally {
+      STUBS[path] = successfulResponse;
+    }
+  });
+
   it("returns structured JSON for smoke inputs", async () => {
     const result = await client.callTool({ name: "service_status", arguments: { modes: "tube" } });
     expect(result.isError).toBeFalsy();
