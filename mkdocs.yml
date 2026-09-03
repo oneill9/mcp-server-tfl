@@ -4,6 +4,7 @@ site_url: https://oneill9.github.io/tfl-mcp-server/
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
     scheme: default
     primary: indigo
@@ -16,6 +17,11 @@ theme:
 repo_name: oneill9/tfl-mcp-server
 repo_url: https://github.com/oneill9/tfl-mcp-server
 edit_uri: edit/main/docs/
+
+extra:
+  analytics:
+    provider: custom
+    property: G-TZX1QK2613
 
 nav:
   - Welcome: index.md

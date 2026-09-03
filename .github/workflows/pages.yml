@@ -6,6 +6,8 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
+      - 'overrides/**'
+      - 'scripts/test-docs-analytics.py'
       - '.github/workflows/pages.yml'
 
 permissions:
@@ -31,4 +33,8 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - run: pip install mkdocs-material 
+      - name: Build and test documentation
+        run: |
+          mkdocs build --strict
+          python scripts/test-docs-analytics.py site
       - run: mkdocs gh-deploy --force
