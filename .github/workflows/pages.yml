@@ -8,6 +8,8 @@ on:
       - 'mkdocs.yml'
       - 'overrides/**'
       - 'scripts/test-docs-analytics.py'
+      - 'scripts/test-docs-ai.py'
+      - 'scripts/docs-hooks.py'
       - '.github/workflows/pages.yml'
 
 permissions:
@@ -37,4 +39,5 @@ jobs:
         run: |
           mkdocs build --strict
           python scripts/test-docs-analytics.py site
+          python scripts/test-docs-ai.py site
       - run: mkdocs gh-deploy --force

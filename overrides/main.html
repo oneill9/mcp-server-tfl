@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <link rel="describedby" href="{{ config.site_url }}llms.txt" type="text/plain">
+  <link rel="describedby" href="{{ config.site_url }}llms.md" type="text/markdown">
+{% endblock %}
