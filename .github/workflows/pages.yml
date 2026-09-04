@@ -52,7 +52,7 @@ jobs:
       - name: Notify IndexNow
         run: |
           test "$(curl --silent --show-error --fail \
-            --retry 5 --retry-delay 2 --retry-all-errors \
+            --retry 30 --retry-delay 2 --retry-all-errors \
             "https://oneill9.github.io/tfl-mcp-server/b4214842a2958d971df6f1a1c660f154.txt")" \
             = "b4214842a2958d971df6f1a1c660f154"
           curl --silent --show-error --fail-with-body \

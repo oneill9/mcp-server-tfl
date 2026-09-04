@@ -53,6 +53,11 @@ class IndexNowDeploymentDriver:
         match = re.search(r"--data-binary\s+'(\{.*?\})'", self.workflow, re.DOTALL)
         return json.loads(match.group(1)) if match else None
 
+    def key_verification_retry_window(self):
+        retry = re.search(r"--retry (\d+)", self.workflow)
+        delay = re.search(r"--retry-delay (\d+)", self.workflow)
+        return int(retry.group(1)) * int(delay.group(1))
+
 
 class DocumentationDiscoveryTest(unittest.TestCase):
     def test_every_page_links_to_the_same_raw_references_even_from_nested_paths(self):
@@ -95,6 +100,7 @@ class DocumentationDiscoveryTest(unittest.TestCase):
         self.assertIn("\n  indexnow:\n", deployment.workflow)
         self.assertIn("needs: deploy", deployment.workflow)
         self.assertIn("--fail-with-body", deployment.workflow)
+        self.assertGreaterEqual(deployment.key_verification_retry_window(), 60)
         self.assertEqual(deployment.payload(), {
             "host": "oneill9.github.io",
             "key": key,
