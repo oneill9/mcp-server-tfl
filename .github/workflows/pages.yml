@@ -41,3 +41,35 @@ jobs:
           python scripts/test-docs-analytics.py site
           python scripts/test-docs-ai.py site
       - run: mkdocs gh-deploy --force
+
+  indexnow:
+    name: Notify IndexNow
+    needs: deploy
+    permissions: {}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Notify IndexNow
+        run: |
+          test "$(curl --silent --show-error --fail \
+            --retry 5 --retry-delay 2 --retry-all-errors \
+            "https://oneill9.github.io/tfl-mcp-server/b4214842a2958d971df6f1a1c660f154.txt")" \
+            = "b4214842a2958d971df6f1a1c660f154"
+          curl --silent --show-error --fail-with-body \
+            --request POST "https://api.indexnow.org/indexnow" \
+            --header "Content-Type: application/json; charset=utf-8" \
+            --data-binary '{
+              "host": "oneill9.github.io",
+              "key": "b4214842a2958d971df6f1a1c660f154",
+              "keyLocation": "https://oneill9.github.io/tfl-mcp-server/b4214842a2958d971df6f1a1c660f154.txt",
+              "urlList": [
+                "https://oneill9.github.io/tfl-mcp-server/",
+                "https://oneill9.github.io/tfl-mcp-server/api-keys/",
+                "https://oneill9.github.io/tfl-mcp-server/installation/",
+                "https://oneill9.github.io/tfl-mcp-server/migration-v2/",
+                "https://oneill9.github.io/tfl-mcp-server/submission/",
+                "https://oneill9.github.io/tfl-mcp-server/tools/"
+              ]
+            }'
+          echo "### IndexNow" >> "$GITHUB_STEP_SUMMARY"
+          echo "Notified search engines of updated pages" >> "$GITHUB_STEP_SUMMARY"
